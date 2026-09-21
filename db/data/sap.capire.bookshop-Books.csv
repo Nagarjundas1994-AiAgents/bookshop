@@ -1,0 +1,13 @@
+ID;title;descr;author_ID;genre_ID;price;currency;stock;isbn;publishedAt;rating
+201;Wuthering Heights;A moorland romance.;101;16;11.11;USD;12;9780141439556;1847-12-01;4.40
+207;Jane Eyre;A governess, a secret, a fire.;107;16;12.34;USD;23;9780141441146;1847-10-16;4.70
+251;The Raven;Nevermore.;150;13;13.13;USD;7;9780486266855;1845-01-29;4.60
+252;Pride and Prejudice;Love and misunderstanding in Regency England.;108;16;9.99;USD;30;9780141439518;1813-01-28;4.80
+253;1984;A dystopian vision of total surveillance.;109;14;14.99;USD;18;9780451524935;1949-06-08;4.90
+254;Murder on the Orient Express;A detective classic aboard a snowbound train.;110;15;10.50;USD;5;9780062693662;1934-01-01;4.50
+255;Foundation;The fall and rebirth of a galactic empire.;111;14;15.99;USD;9;9780553293357;1951-05-01;4.60
+256;I Know Why the Caged Bird Sings;A landmark autobiography.;112;12;13.50;USD;14;9780345514400;1969-01-01;4.70
+257;Emma;Matchmaking gone wonderfully wrong.;108;16;8.99;USD;0;9780141439587;1815-12-23;4.20
+258;Animal Farm;A satirical farmyard fable of power.;109;16;7.99;USD;25;9780451526342;1945-08-17;4.50
+259;And Then There Were None;Ten strangers, one island, no escape.;110;15;11.25;USD;3;9780062073488;1939-11-06;4.60
+260;The Tell-Tale Heart;Guilt throbs beneath the floorboards.;150;13;6.99;USD;0;9780486266682;1843-01-01;4.30

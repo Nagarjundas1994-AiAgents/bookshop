@@ -1,0 +1,4 @@
+ID;name;email;phone;loyaltyPoints;street;city;country
+501;Aarav Sharma;aarav@example.com;+91-98200-11111;120;MG Road;Bengaluru;IND
+502;Maria Schmidt;maria@example.com;+49-170-22222;340;Berliner Str. 12;Berlin;DEU
+503;John Carter;john@example.com;+1-415-33333;45;Market St;San Francisco;USA

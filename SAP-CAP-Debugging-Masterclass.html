@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP CAP Debugging Masterclass — Windows PowerShell Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--navy:#0a1f44;--navy2:#132c5e;--gold:#c9a227;--gold2:#e6c65a;--bg:#f3f5fa;--card:#fff;--text:#1c2b3a;--muted:#5d6f84;--bd:#dde4ee;--green:#0e7a4f;--red:#b42318;--blue:#0a6ed1;--code:#0b1526;--grad:linear-gradient(135deg,#0a1f44,#1b3a7a 60%,#0a6ed1);--ring:0 1px 2px #0a1f4418,0 10px 28px -14px #0a1f4444}
+*{box-sizing:border-box}body{margin:0;font-family:"Inter",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+body.dark{--bg:#0a1220;--card:#141f36;--text:#e4eaf3;--muted:#93a3bb;--bd:#2a3a58;--code:#050b16}
+a{color:var(--blue)}
+header{position:sticky;top:0;z-index:60;background:linear-gradient(100deg,#071633,#0a1f44 55%,#13407c);color:#fff;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(10px);box-shadow:0 4px 22px #020a1c88}
+header h1{font-size:16px;margin:0;letter-spacing:.2px}header h1 b{color:var(--gold2)}.sub{font-size:12px;opacity:.85}
+.tb{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tb input,.tb button{background:#ffffff14;border:1px solid #ffffff3d;color:#fff;border-radius:9px;padding:7px 11px;font-size:13px}
+.tb input{min-width:200px}.tb input::placeholder{color:#cdd8ea}.tb button{cursor:pointer;font-weight:700;background:#ffffff22;transition:.2s}.tb button:hover{background:var(--gold);color:#221a03;border-color:var(--gold)}
+.tb .pill{background:var(--gold);color:#221a03;font-weight:800;border-radius:20px;padding:7px 13px;font-size:13px;white-space:nowrap}
+#bar{height:4px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0}
+.lay{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+aside{position:sticky;top:63px;height:calc(100vh - 63px);overflow:auto;background:linear-gradient(180deg,#0a1f44,#0d2653);color:#dbe4f3;padding:14px}
+aside b.t{font-size:11px;color:var(--gold2);letter-spacing:1px}
+#nv a{display:block;padding:7px 12px;border-radius:9px;color:#dbe4f3;text-decoration:none;font-size:13px;border:1px solid transparent;transition:.18s;position:relative}
+#nv a:hover{transform:translateX(3px);background:#ffffff10}
+#nv a.act{background:#ffffff14;border-color:#c9a22766;font-weight:700;color:#fff}
+#nv a.act::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:4px;border-radius:4px;background:linear-gradient(180deg,var(--gold),var(--gold2))}
+#nv a.done::after{content:" ✓";color:var(--gold2);font-weight:800}
+main{padding:26px;max-width:1200px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071633,#0a1f44 55%,#15519b);color:#fff;border-radius:18px;padding:30px;margin-bottom:20px;box-shadow:var(--ring)}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;pointer-events:none}
+.hero::before{width:360px;height:360px;background:#0a6ed1;top:-130px;right:-70px;animation:drift 10s ease-in-out infinite alternate}
+.hero::after{width:260px;height:260px;background:var(--gold);bottom:-150px;left:25%;opacity:.28;animation:drift 13s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(40px,30px) scale(1.12)}}
+.hero h1{margin:0 0 6px;font-size:30px;letter-spacing:-.02em;position:relative;z-index:1}.hero h1 span{color:var(--gold2)}
+.hero p{position:relative;z-index:1;opacity:.94}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;position:relative;z-index:1}
+.stats div{background:#ffffff14;border:1px solid #ffffff38;border-radius:12px;padding:8px 16px;text-align:center;backdrop-filter:blur(4px)}
+.stats b{display:block;font-size:20px;color:var(--gold2)}.stats span{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+.sec{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;margin:18px 0;box-shadow:var(--ring);scroll-margin-top:90px}
+.sec>h2{margin:0 0 4px;font-weight:800;letter-spacing:-.02em}.sec>h2::after{content:"";display:block;height:4px;width:72px;border-radius:4px;background:linear-gradient(90deg,var(--gold),var(--gold2));margin-top:8px}
+.snum{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1px;color:#7a5c00;background:linear-gradient(135deg,#f6e7b2,#e6c65a);border-radius:20px;padding:3px 12px;text-transform:uppercase}body.dark .snum{color:#221a03}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1000px){.lay{grid-template-columns:1fr}aside{position:static;height:auto}.grid2,.grid3,.grid4{grid-template-columns:1fr}main{padding:14px}}
+.kpi{background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--gold);border-radius:12px;padding:12px 14px;box-shadow:var(--ring)}
+.kpi b{font-size:20px;display:block}.kpi span{font-size:12px;color:var(--muted)}
+.ib,.rw,.cm,.rm{border-radius:12px;padding:12px 16px;margin:12px 0;box-shadow:var(--ring)}
+.ib{border-left:5px solid var(--gold);background:#fdf6e0}body.dark .ib{background:#3a2f10;color:#f5e3a8}
+.rw{border-left:5px solid var(--blue);background:#e9f2fd}body.dark .rw{background:#12294d;color:#bcd6f7}
+.cm{border-left:5px solid var(--red);background:#fdecea}body.dark .cm{background:#3d1512;color:#f5b8b0}
+.rm{border-left:5px solid var(--green);background:#e6f4ec}body.dark .rm{background:#0d3325;color:#a9e5c6}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;box-shadow:var(--ring)}th,td{border:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:top}th{background:#0a1f44;color:#fff}body.dark th{background:#1b2c52}
+tbody tr:hover{background:#c9a22714}
+code{background:#e8edf5;padding:2px 7px;border-radius:6px;font-size:13px}body.dark code{background:#050b16;border:1px solid var(--bd)}
+pre{background:var(--code);color:#e4eaf3;padding:30px 14px 14px;border-radius:12px;overflow:auto;position:relative;font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;box-shadow:var(--ring);border:1px solid #ffffff14}
+pre:not(.mermaid)::before{content:"";position:absolute;top:12px;left:14px;width:34px;height:10px;border-radius:6px;background:linear-gradient(90deg,#f87171 0 10px,#fbbf24 10px 20px,#34d399 20px 30px);opacity:.9}
+pre.mermaid{background:#fff;color:#1c2b3a;border:1px solid var(--bd)}
+.mermaid g.node text{fill:#fff}.mermaid g.node rect{stroke-width:2px}
+pre button{position:absolute;top:8px;right:8px;background:#fff;border:0;border-radius:8px;padding:5px 11px;font-size:12px;cursor:pointer;font-weight:700}
+pre code{background:transparent;padding:0;border:0;color:inherit}
+.mbox{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin:12px 0;overflow:auto}body.dark .mbox{background:#fff}
+details{border:1px solid var(--bd);border-radius:11px;padding:10px 15px;margin:8px 0;background:var(--card)}
+details[open]{box-shadow:var(--ring);border-color:#c9a22788}
+summary{cursor:pointer;font-weight:700;list-style:none;display:flex;gap:10px;align-items:center}summary::-webkit-details-marker{display:none}
+summary::before{content:"+";flex:0 0 26px;height:26px;border-radius:50%;background:#eee3bd;display:inline-flex;align-items:center;justify-content:center;font-weight:800}details[open] summary::before{content:"-";background:var(--gold);color:#221a03}
+.d-b,.d-i,.d-a{font-size:10px;font-weight:800;border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.d-b{background:#dcfce7;color:#166534}.d-i{background:#fef3c7;color:#92400e}.d-a{background:#fee2e2;color:#991b1b}
+.qmeta{font-size:13px;color:var(--muted);margin:6px 0}.qmeta b{color:var(--gold);filter:saturate(2)}
+.chk{list-style:none;padding:0}.chk li{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:7px 12px;margin:6px 0;font-size:14px;cursor:pointer}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:2px solid #94a3b8;border-radius:7px;background:#fff;cursor:pointer;position:relative;flex:0 0 20px;margin:1px 0 0}
+.chk input:checked{background:linear-gradient(135deg,#0a1f44,#0a6ed1);border-color:var(--gold)}
+.chk input:checked::after{content:"✓";color:var(--gold2);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.chk li.done{background:#fbf6e2}body.dark .chk li.done{background:#3a2f1055}
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.flt button{border:1px solid var(--gold);background:transparent;color:inherit;border-radius:20px;padding:6px 15px;font-size:13px;font-weight:700;cursor:pointer}.flt button.on{background:var(--gold);color:#221a03}
+#top{position:fixed;right:20px;bottom:20px;z-index:90;background:linear-gradient(135deg,#0a1f44,#0a6ed1);color:#fff;border:1px solid var(--gold);border-radius:50%;width:48px;height:48px;font-size:20px;cursor:pointer;display:none;box-shadow:0 8px 20px #0006}
+.dash{background:#0e2248;border-radius:14px;padding:18px;color:#fff;margin:12px 0}
+.dash .krow{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}@media(max-width:1000px){.dash .krow{grid-template-columns:1fr 1fr}}
+.dash .k{background:#ffffff12;border:1px solid #ffffff2e;border-radius:10px;padding:10px;text-align:center}
+.dash .k b{color:var(--gold2);font-size:18px;display:block}.dash .k span{font-size:11px;opacity:.8}
+.dash .crow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}@media(max-width:1000px){.dash .crow{grid-template-columns:1fr}}
+.dash .c{background:#ffffff0d;border:1px solid #ffffff2e;border-radius:10px;padding:12px;font-size:13px}
+.bar{height:9px;border-radius:6px;background:#ffffff22;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.widget{background:linear-gradient(180deg,#0e2248,#0a1f44);color:#fff;border-radius:14px;padding:18px;margin:12px 0;border:1px solid var(--gold);box-shadow:var(--ring)}
+.widget h3{margin:0 0 10px;color:var(--gold2);font-size:15px}
+.widget p{font-size:13px;opacity:.88}
+.widget label{font-size:12px;opacity:.85;display:block;margin-bottom:4px}
+.widget input{background:#ffffff14;border:1px solid #ffffff44;color:#fff;border-radius:8px;padding:7px 10px;font-size:14px;width:100%}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.wout{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.wout div{background:#ffffff12;border:1px solid #ffffff30;border-radius:10px;padding:8px 14px;min-width:140px}
+.wout b{color:var(--gold2);font-size:18px;display:block}.wout span{font-size:11px;opacity:.8}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chips button{background:#ffffff12;border:1px solid #ffffff44;color:#fff;border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;transition:.18s}
+.chips button:hover{border-color:var(--gold2)}
+.chips button.on{background:var(--gold);color:#221a03;border-color:var(--gold)}
+.jrow{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.jcell{border:1px solid #ffffff44;border-radius:8px;padding:5px 10px;font-size:13px}
+.jcell.hit{background:#14532d;border-color:#34d399}.jcell.miss{background:#3d1512;border-color:#f87171}
+.js .rv{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none}.hero::before,.hero::after{animation:none}}
+@media print{aside,.tb,#bar,#top,.flt{display:none}.lay{grid-template-columns:1fr}body{background:#fff}.sec{box-shadow:none;break-inside:avoid}.js .rv{opacity:1;transform:none}}
+.cmd{border:1px solid var(--bd);border-left:5px solid var(--gold);border-radius:12px;padding:14px 16px;margin:12px 0;background:var(--card);box-shadow:var(--ring)}
+.cmd h4{margin:0 0 6px;font-size:15px}.cmd h4 code{font-size:14px}
+.cmd .fld{font-size:13px;margin:4px 0}.cmd .fld b{color:var(--gold);filter:saturate(1.6)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.tabs button{border:1px solid var(--bd);background:var(--card);color:inherit;border-radius:9px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer}.tabs button.on{background:#0a1f44;color:#fff;border-color:#0a1f44}
+.tabpane{display:none}.tabpane.on{display:block}
+.flow{display:flex;flex-direction:column;gap:0}.flow div{border:1px solid var(--bd);border-radius:10px;padding:8px 14px;background:var(--card);font-size:14px}.flow .arr{text-align:center;border:0;background:transparent;font-size:18px;padding:0}
+</style>
+</head>
+<body>
+<header>
+<h1>SAP CAP <b>Debugging Masterclass</b></h1><span class="sub">Windows PowerShell • Local to BTP Production • bookshop project</span>
+<div class="tb">
+<input id="q" placeholder="Search: 401, HANA, cds env, destination...">
+<button id="expandAll">Expand</button>
+<button id="collapseAll">Collapse</button>
+<button id="darkBtn">Dark</button>
+<button id="printBtn">Print</button>
+<span class="pill" id="ppill">0% done</span>
+</div>
+</header>
+<div id="bar"></div>
+<div class="lay">
+<aside><b class="t">CONTENTS • PROGRESS SAVED</b><nav id="nv">
+<a href="#s01">1 • Philosophy: don't guess</a>
+<a href="#s02">2 • Landscape: 14 layers</a>
+<a href="#s03">3 • Local / Hybrid / Remote</a>
+<a href="#s04">4 • PowerShell fundamentals</a>
+<a href="#s05">5 • Node.js + health check</a>
+<a href="#s06">6 • cds watch masterclass</a>
+<a href="#s07">7 • cds serve vs watch</a>
+<a href="#s08">8 • cds env masterclass</a>
+<a href="#s09">9 • DEBUG variables (PS fix)</a>
+<a href="#s10">10 • CDS compile debugging</a>
+<a href="#s11">11 • Database debugging</a>
+<a href="#s12">12 • CQL vs SQL</a>
+<a href="#s13">13 • OData + HTTP codes</a>
+<a href="#s14">14 • Handlers + Node inspector</a>
+<a href="#s15">15 • UI5 to CAP + DevTools</a>
+<a href="#s16">16 • XSUAA + Destination + S/4</a>
+<a href="#s17">17 • cds bind hybrid</a>
+<a href="#s18">18 • Cloud Foundry ops</a>
+<a href="#s19">19 • MTA + approuter + yaml</a>
+<a href="#s20">20 • Decision tree + error DB</a>
+<a href="#s21">21 • Labs + checklists</a>
+<a href="#s22">22 • Reference + golden rules + cheat sheet</a>
+</nav></aside>
+<main>
+<div class="hero">
+<h1>SAP CAP Debugging <span>Masterclass</span></h1>
+<p>From <code>DEBUG=sql is not recognized</code> to production root-cause analysis. Every command in <b>Windows PowerShell syntax</b>, every layer from SQLite to S/4HANA, every fix verified. Built around your <b>bookshop</b> app (cds 10, Node 24).</p>
+<div class="stats">
+<div><b>22</b><span>sections</span></div>
+<div><b>60+</b><span>commands</span></div>
+<div><b>14</b><span>layers</span></div>
+<div><b>12</b><span>labs</span></div>
+<div><b>1</b><span>cheat sheet</span></div>
+</div>
+</div>
+<div class="flt">
+<button data-f="all" class="on">All levels</button>
+<button data-f="b">Beginner</button>
+<button data-f="i">Developer</button>
+<button data-f="a">Expert</button>
+</div>
+
+<!-- S01 -->
+<section class="sec rv" id="s01"><span class="snum">Section 1 • Mindset</span>
+<h2>Debugging philosophy: don't randomly try commands</h2>
+<p>Every CAP bug follows the same operating loop. Memorize it before touching the keyboard.</p>
+<div class="mbox"><pre class="mermaid">flowchart TD
+A[SYMPTOM] --> B[REPRODUCE THE BUG]
+B --> C[IDENTIFY THE LAYER]
+C --> D[COLLECT EVIDENCE]
+D --> E[ISOLATE THE COMPONENT]
+E --> F[CHECK LOGS / CONFIG / REQUEST]
+F --> G[ROOT CAUSE]
+G --> H[FIX]
+H --> I[RETEST + VERIFY]</pre></div>
+<div class="grid3">
+<div class="kpi"><b>Symptom</b><span>What you SEE. UI5 shows "Request failed". This is never the diagnosis.</span></div>
+<div class="kpi"><b>Cause</b><span>What directly broke. OData returned 500.</span></div>
+<div class="kpi"><b>Root cause</b><span>Why it broke. Handler used wrong property <code>Books.stockCount</code>.</span></div>
+</div>
+<div class="rw"><b>Real example — bookshop:</b> Fiori shows "Request failed" on <code>/bahi</code>. Network tab says <code>500</code>. CAP terminal says <code>Cannot read properties of undefined (reading 'stock')</code> in <code>catalog-service.js:18</code>. Root cause: <code>req.params[0]</code> is undefined for unbound call. Fix: separate bound vs unbound handler. Verify: <code>Invoke-RestMethod .../bahi</code> returns 200.</div>
+<div class="ib"><b>Golden distinction:</b> <b>FIX</b> changes code/config. <b>VERIFICATION</b> proves it with a repeated command + output. No verification = no fix.</div>
+<div class="cm"><b>Beginner trap:</b> editing 3 files at once. Change <b>one thing</b>, retest, then continue. Otherwise you never learn what worked.</div>
+<ul class="chk"><li><input type="checkbox"> I can recite the 9-step loop without looking</li><li><input type="checkbox"> I can separate symptom / cause / root cause / fix / verification for one past bug</li></ul>
+</section>
+
+<!-- S02 -->
+<section class="sec rv" id="s02"><span class="snum">Section 2 • Map</span>
+<h2>The complete debugging landscape — 14 layers</h2>
+<p>A bug at layer 6 (database) appears as an error at layer 8 (UI5). Always debug <b>bottom-up</b>: URL → CAP → handler → CQL → DB, not top-down guessing.</p>
+<div class="mbox"><pre class="mermaid">flowchart TD
+APP[SAP CAP Application] --> UI[UI5 / Fiori]
+APP --> SVC[CAP Service]
+APP --> DB[(HANA / SQLite)]
+SVC --> H[Custom Handler]
+H --> CQL[CQL / SQL]
+CQL --> DB
+UI --> OD[OData]
+OD --> REM[Remote Service]
+REM --> DEST[Destination]
+DEST --> S4[S/4HANA]</pre></div>
+<table><thead><tr><th>Layer</th><th>What lives there</th><th>Smoking-gun command</th></tr></thead><tbody>
+<tr><td>1 PowerShell</td><td>env vars, ports, paths</td><td><code>Get-NetTCPConnection</code>, <code>$env:DEBUG</code></td></tr>
+<tr><td>2 Node.js</td><td>versions, ESM/CJS</td><td><code>node --version; npx cds --version</code></td></tr>
+<tr><td>3 CAP runtime</td><td>watch/serve, profiles</td><td><code>npx cds watch</code></td></tr>
+<tr><td>4 CDS model</td><td>schema + services</td><td><code>npx cds compile srv --to edmx</code></td></tr>
+<tr><td>5 CQL</td><td>queries in handlers</td><td><code>$env:DEBUG="sql"</code></td></tr>
+<tr><td>6 Database</td><td>SQLite / HANA / HDI</td><td><code>npx cds deploy --to sqlite</code></td></tr>
+<tr><td>7 OData</td><td>$metadata, status codes</td><td><code>Invoke-RestMethod .../$metadata</code></td></tr>
+<tr><td>8 UI5/Fiori</td><td>Network tab</td><td>Browser DevTools</td></tr>
+<tr><td>9 Auth (XSUAA)</td><td>401 vs 403</td><td><code>cf env</code> + token check</td></tr>
+<tr><td>10 Destination</td><td>names, URLs, auth</td><td>BTP cockpit + <code>DEBUG=remote</code></td></tr>
+<tr><td>11 S/4HANA</td><td>remote APIs</td><td><code>$env:DEBUG="remote"</code></td></tr>
+<tr><td>12 CF</td><td>apps, logs, events</td><td><code>cf logs --recent</code></td></tr>
+<tr><td>13 MTA</td><td>build + deploy</td><td><code>mbt build -p=cf</code></td></tr>
+<tr><td>14 BTP services</td><td>HANA, XSUAA, dest</td><td><code>cf services; cf env</code></td></tr>
+</tbody></table>
+<div class="cm"><b>Key insight:</b> "Destination not found" is a layer-10 bug wearing a layer-7 (500) costume. The status code tells you <i>where it surfaced</i>, logs tell you <i>where it started</i>.</div>
+</section>
+
+<!-- S03 -->
+<section class="sec rv" id="s03"><span class="snum">Section 3 • Modes</span>
+<h2>Local vs Hybrid vs Remote</h2>
+<div class="tabs"><button class="on" data-t="t-local">Local</button><button data-t="t-hybrid">Hybrid</button><button data-t="t-remote">Remote</button></div>
+<div class="tabpane on" id="t-local"><div class="mbox"><pre class="mermaid">flowchart LR
+PC[Developer PC] --> W[cds watch] --> LH[localhost:4004] --> LITE[(SQLite)]</pre></div>
+<p><b>Use when:</b> learning, handlers, CQL, OData, UI5 mock. <b>Commands:</b> <code>npx cds watch</code>, <code>Invoke-RestMethod</code>, <code>$env:DEBUG="sql"</code>.</p></div>
+<div class="tabpane" id="t-hybrid"><div class="mbox"><pre class="mermaid">flowchart LR
+PC2[Local CAP] --> B[Service binding] --> HANA[(BTP HANA / XSUAA / Dest / S4)]</pre></div>
+<p><b>Use when:</b> real HANA data or S/4 API needed but you want local breakpoints. <b>Commands:</b> <code>cds bind</code>, <code>cds watch --profile hybrid</code>.</p></div>
+<div class="tabpane" id="t-remote"><div class="mbox"><pre class="mermaid">flowchart LR
+CF[Cloud Foundry] --> APP2[CAP app] --> SRV2[HANA + XSUAA + Dest + S4]</pre></div>
+<p><b>Use when:</b> staging, prod issues, auth, scaling. <b>Commands:</b> <code>cf logs --recent</code>, <code>cf env</code>, <code>cf events</code>.</p></div>
+<table><thead><tr><th>Mode</th><th>App</th><th>DB</th><th>Services</th><th>Main commands</th></tr></thead><tbody>
+<tr><td><b>Local</b></td><td>Local</td><td>SQLite</td><td>Mock</td><td><code>npx cds watch</code></td></tr>
+<tr><td><b>Hybrid</b></td><td>Local</td><td>BTP HANA</td><td>BTP/S4</td><td><code>cds bind; cds watch --profile hybrid</code></td></tr>
+<tr><td><b>Remote</b></td><td>CF</td><td>BTP HANA</td><td>BTP/S4</td><td><code>cf logs; cf env</code></td></tr>
+</tbody></table>
+<div class="rm"><b>Rule:</b> reproduce locally first. If it only fails on CF, the delta is bindings, env, or data — run <code>cf env</code> vs <code>cds env</code> side by side.</div>
+</section>
+
+<!-- S04 -->
+<section class="sec rv" id="s04"><span class="snum">Section 4 • PowerShell</span>
+<h2>PowerShell fundamentals for CAP debugging</h2>
+<p>All commands run in <b>Windows PowerShell 5.1 / 7</b> from your project root <code>E:\...\bookshop</code>. Linux-style <code>DEBUG=sql cds watch</code> <b>never works</b> here — see Section 9.</p>
+<div class="cmd"><h4><code>Get-Location</code> — where am I?</h4><div class="fld"><b>Why:</b> wrong folder = wrong <code>package.json</code> / model. <b>When:</b> first command in any session.</div><pre><code>Get-Location
+# expect: ...\CAP_PRACTICE\bookshop
+# bug sign: path ends in CAP_PRACTICE (one level up) -> cds finds no model
+# fix: Set-Location .\bookshop  | verify: Get-ChildItem package.json</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4><code>Get-ChildItem / Get-Content / Select-String</code> — inspect without opening an editor</h4><pre><code>Get-ChildItem
+Get-ChildItem .\mta_archives\
+Get-Content package.json
+Get-Content .\.cdsrc.json
+Select-String -Path "srv\*.js" -Pattern "removeStock|applyDiscount"
+# bug sign: Select-String finds handler name in .cds but NOT in .js -> unimplemented action (500)</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4><code>Get-NetTCPConnection + Get-Process</code> — port 4004 busy?</h4><pre><code>Get-NetTCPConnection -LocalPort 4004 | Select-Object OwningProcess, State
+Get-Process -Id &lt;PID&gt;
+Stop-Process -Id &lt;PID&gt;   # last resort; prefer Ctrl+C in the right terminal
+# bug sign: EADDRINUSE / server exits instantly -> old cds watch still running</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4><code>Invoke-WebRequest vs Invoke-RestMethod</code> — test OData without a browser</h4><pre><code>Invoke-WebRequest "http://localhost:4004/odata/v4/catalog/$metadata" | Select-Object StatusCode
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/bahi?$top=2"
+# WebRequest = raw HTTP (headers/status); RestMethod = parsed JSON. Use RestMethod for data, WebRequest for status/headers.</code><button class="copy">Copy</button></pre></div>
+<ul class="chk"><li><input type="checkbox"> I run Get-Location before every debug session</li><li><input type="checkbox"> I can free port 4004 and test $metadata from PowerShell</li></ul>
+</section>
+
+<!-- S05 -->
+<section class="sec rv" id="s05"><span class="snum">Section 5 • Runtime</span>
+<h2>Node.js environment debugging + health check</h2>
+<div class="cmd"><h4><code>node --version; npm --version; npx cds --version</code> — the health check</h4><div class="fld"><b>Why:</b> 80% of "mystery" failures are version drift (Node 24 ESM vs old cds, global vs local cds mismatch).</div><pre><code>node --version     # your: v24.18.0 — fine with cds 10, watch out for ESM loader issues with --inspect + watch
+npm --version      # your: 11.7.0
+npx cds --version  # your: cds-dk 10.1.2 / cds 10.1.1 — healthy when local+global major versions match
+npm list @sap/cds @cap-js/sqlite
+npm list -g @sap/cds-dk
+# bug signs: ERESOLVE / Cannot find module @sap/cds -> npm install needed
+# fix: npm install | verify: rerun npx cds --version, versions line up</code><button class="copy">Copy</button></pre></div>
+<div class="mbox"><pre class="mermaid">flowchart TD
+N[Node version] --> M[npm version] --> C[CDS version] --> P[package.json] --> NM[node_modules]</pre></div>
+<details class="q" data-d="b"><summary>Health check <span class="d-b">Beginner</span></summary><div class="qmeta"><b>Run:</b> the 3 version commands. <b>Expect:</b> Node 20+ / 22+ / 24 with cds 7–10.</div><p><b>Common mistake:</b> two terminals with different Node versions (nvm). Always check in the <i>same</i> terminal that runs <code>cds watch</code>.</p></details>
+<details class="q" data-d="a"><summary>ESM vs CommonJS crash <span class="d-a">Expert</span></summary><div class="qmeta"><b>Symptom:</b> <code>ERR_UNSUPPORTED_ESM_URL_SCHEME</code> with bootloader.js on Node 24.</div><p><b>Root cause:</b> VS Code debugger injects <code>NODE_OPTIONS</code> bootloader into the <code>cds watch</code> child <code>cds serve</code> process. <b>Fix:</b> debug <code>cds serve</code> (no child), never F5-launch <code>cds watch</code> directly.</p></details>
+</section>
+
+<!-- S06 -->
+<section class="sec rv" id="s06"><span class="snum">Section 6 • CAP runtime</span>
+<h2>cds watch masterclass</h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+W[cds watch] --> L[Load CDS] --> C[Compile model] --> S[Load services] --> D[Init DB] --> H[HTTP server] --> OK[localhost:4004]</pre></div>
+<div class="cmd"><h4><code>npx cds watch</code> — full diagnostic</h4><div class="fld"><b>What:</b> dev server with file watching + auto restart. <b>Why:</b> single fastest evidence source. <b>Where:</b> project root (where <code>package.json</code> sits). <b>When:</b> always first for local bugs.</div><pre><code>Set-Location "E:\SAP PROJECTS\SameerbhaiProject\CAP_PRACTICE\bookshop"
+npx cds watch
+# EXPECT: [cds] serving CatalogService { path: '/odata/v4/catalog' } ... server listening on { url: 'http://localhost:4004' }
+# Open: http://localhost:4004  and  http://localhost:4004/odata/v4/catalog/$metadata
+# BUG SIGNS + NEXT:
+#  EADDRINUSE -> Get-NetTCPConnection -LocalPort 4004 (Sec 4)
+#  "Cannot find module" -> npm install (Sec 5)
+#  CDS compile error with file:line -> npx cds compile "*" (Sec 10)
+#  "Failed to connect database" -> cds env get requires.db (Sec 8)
+# FIX: fix FIRST error only, save, watch restarts. VERIFY: endpoints return 200.</code><button class="copy">Copy</button></pre></div>
+<div class="grid2"><div class="rm"><b>Starts OK:</b> you see <code>server listening</code>. If an endpoint then fails, the bug is in service/handler/CQL — go to Sec 13/14.</div><div class="cm"><b>Fails at startup:</b> scroll to the <b>first</b> error, ignore the cascade below it. The first error is the cause, the rest are symptoms.</div></div>
+<details class="q" data-d="b"><summary>watch shows nothing at localhost:4004? <span class="d-b">Beginner</span></summary><p><b>Check:</b> terminal still running? Correct folder (<code>Get-Location</code>)? Port busy? Firewall? Try <code>npx cds serve</code> as a control — if serve works but watch doesn't, the watcher itself is broken (rare), not your app.</p></details>
+<details class="q" data-d="i"><summary>How do I know if it is startup vs endpoint vs DB failure? <span class="d-i">Developer</span></summary><p><b>Startup:</b> no <code>listening</code> line. <b>Endpoint:</b> listening OK, URL returns 404/500. <b>DB:</b> endpoint works for metadata but entity reads fail with SQL errors — enable <code>$env:DEBUG="sql"</code>.</p></details>
+<ul class="chk"><li><input type="checkbox"> I can start watch and open /$metadata successfully</li></ul>
+</section>
+
+<!-- S07 -->
+<section class="sec rv" id="s07"><span class="snum">Section 7 • serve</span>
+<h2>cds serve — when to use it instead of watch</h2>
+<table><thead><tr><th></th><th>cds serve</th><th>cds watch</th></tr></thead><tbody>
+<tr><td>Restarts on save</td><td>No</td><td>Yes</td></tr>
+<tr><td>Spawns child process</td><td>No</td><td>Yes (Node 24 inspect risk)</td></tr>
+<tr><td>Best for</td><td><b>Debugging (F5)</b>, stable repro</td><td>Fast dev loop</td></tr>
+<tr><td>Command</td><td><code>npx cds serve</code></td><td><code>npx cds watch</code></td></tr>
+</tbody></table>
+<div class="cmd"><h4><code>npx cds serve</code> (+ profiles/mocks)</h4><pre><code>npx cds serve
+npx cds serve --with-mocks --in-memory
+npx cds serve --profile hybrid   # local code, BTP-backed services
+# VERIFY: same 200s as watch. If serve works but watch fails -> watcher/port issue, not app logic.</code><button class="copy">Copy</button></pre></div>
+<div class="ib"><b>Your launch.json uses serve for a reason:</b> F5 launches <code>npx cds serve</code> via <code>node-terminal</code> — no child process, no bootloader ESM crash. Use watch in a plain terminal for editing speed.</div>
+</section>
+
+<!-- S08 -->
+<section class="sec rv" id="s08"><span class="snum">Section 8 • Config</span>
+<h2>cds env masterclass — configuration debugging</h2>
+<p>Effective config = <code>package.json</code> + <code>.cdsrc.json</code> + profiles + env vars + VCAP_SERVICES → <code>cds env</code> shows the merged result. When in doubt, trust <code>cds env</code> over any single file.</p>
+<div class="cmd"><h4><code>npx cds env; cds env get requires</code></h4><pre><code>npx cds env
+npx cds env get requires
+npx cds env get requires.db
+npx cds env get requires.auth
+npx cds env get profiles
+npx cds help env   # version-safe: options differ between cds 7/8/10
+# EXPECT: JSON with db kind (sqlite/hana), auth strategy, remote destinations.
+# BUG SIGNS: requires.db missing -> DB calls fail | auth484 -> wrong profile
+#   remote destination name mismatch -> S/4 calls 404/500
+# FIX: correct .cdsrc.json/profile/binding. VERIFY: rerun env, value now correct.</code><button class="copy">Copy</button></pre></div>
+<div class="rw"><b>bookshop example:</b> <code>cds env get requires.db</code> should show <code>sqlite</code> locally. If it shows <code>hana</code> locally, you launched with the wrong profile — restart without <code>--profile hybrid</code>.</div>
+</section>
+
+<!-- S09 -->
+<section class="sec rv" id="s09"><span class="snum">Section 9 • Logging</span>
+<h2>DEBUG variables — the PowerShell fix (your exact error)</h2>
+<div class="cm"><b>Your error:</b> <code>DEBUG=sql : The term 'DEBUG=sql' is not recognized...</code> — that is Linux/macOS syntax. PowerShell sets env vars with <code>$env:</code>. Never prefix the command.</div>
+<div class="cmd"><h4>Correct PowerShell syntax</h4><pre><code>$env:DEBUG="cds*"; npx cds watch
+$env:DEBUG="sql"; npx cds watch
+$env:DEBUG="remote"; npx cds watch
+$env:DEBUG="cds*,sql,remote"; npx cds watch
+$env:DEBUG                        # check current value
+Remove-Item Env:\DEBUG             # reset to quiet
+# one-liner that auto-cleans (PowerShell 7):
+& { $env:DEBUG="sql"; npx cds watch }</code><button class="copy">Copy</button></pre></div>
+<table><thead><tr><th>DEBUG value</th><th>Investigates</th><th>When</th></tr></thead><tbody>
+<tr><td><code>cds*</code></td><td>CAP runtime, bootstrap, handlers</td><td>startup / 500s</td></tr>
+<tr><td><code>sql</code></td><td>generated SQL + bindings</td><td>CQL/DB suspicion</td></tr>
+<tr><td><code>remote</code></td><td>outbound dest/S4 calls</td><td>S/4 integration</td></tr>
+<tr><td><code>auth</code></td><td>auth flows</td><td>401/403</td></tr>
+<tr><td><code>cds:db,messaging</code></td><td>db + messaging</td><td>version-dependent</td></tr>
+<tr><td><code>*</code></td><td>everything (noisy)</td><td>last resort</td></tr>
+</tbody></table>
+<div class="ib"><b>Accuracy note:</b> namespaces vary by CAP/runtime version. Verify with <code>npx cds --version</code> + <code>npx cds help</code> and current CAP docs. Prefer <code>cds*</code>, <code>sql</code>, <code>remote</code> — valid on current releases.</div>
+<div class="rw"><b>bookshop lab:</b> <code>$env:DEBUG="sql"; npx cds watch</code>, then call <code>booksByPriceRange(min=10,max=13)</code>. You should see <code>SELECT ... WHERE price &gt;= ? AND price &lt;= ?</code>. No SQL line = handler never ran (check action/function name spelling).</div>
+</section>
+
+<!-- S10 -->
+<section class="sec rv" id="s10"><span class="snum">Section 10 • Model</span>
+<h2>CDS compilation debugging</h2>
+<p>Pipeline: <code>CDS → CSN → SQL/HANA</code> and <code>CDS service → OData EDMX → UI5</code>. Compiled artifacts prove what CAP <i>actually</i> understood.</p>
+<div class="cmd"><h4><code>npx cds compile</code> variants</h4><pre><code>npx cds compile "*"
+npx cds compile "*" --to sql
+npx cds compile "*" --to hana
+npx cds compile srv --to edmx
+npx cds help compile   # check flags for YOUR cds version before scripting
+# EXPECT: clean output. BUG SIGN: error cites file:line:column (e.g. unknown element 'stockCount').
+# FIX: correct db/schema.cds or srv/catalog-service.cds. VERIFY: recompile clean, then cds watch starts.</code><button class="copy">Copy</button></pre></div>
+<div class="rw"><b>bookshop example:</b> rename <code>stock</code> to <code>stockCount</code> in the handler only → <code>compile "*"</code> still passes (model is fine) but runtime SQL fails. That split proves it is a <b>handler/CQL bug, not a model bug</b>.</div>
+</section>
+
+<!-- S11 -->
+<section class="sec rv" id="s11"><span class="snum">Section 11 • Data</span>
+<h2>Database debugging — SQLite vs HANA</h2>
+<div class="tabs"><button class="on" data-t="t-sqlite">SQLite (local)</button><button data-t="t-hana">HANA Cloud</button></div>
+<div class="tabpane on" id="t-sqlite">
+<div class="cmd"><h4>SQLite flow</h4><pre><code>npx cds deploy --to sqlite
+$env:DEBUG="sql"; npx cds serve
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/bahi?$top=2"
+# BUG SIGNS: "no such table" -> deploy missed | empty array -> CSV not loaded / wrong delimiter
+# FIX: check db/data/*.csv headers + redeploy. VERIFY: entity returns rows.</code><button class="copy">Copy</button></pre></div></div>
+<div class="tabpane" id="t-hana"><p><b>HANA/HDI:</b> <code>cf services</code> (instance exists?) → <code>cf env &lt;app&gt;</code> (bound? VCAP_SERVICES has hana?) → <code>cf logs --recent</code> (deploy/connection errors). Locally: <code>cds bind</code> then <code>cds watch --profile hybrid</code>. Never paste credentials from <code>cf env</code> into chat/tickets.</p></div>
+<div class="ib"><b>Isolate the quadrant:</b> model problem (<code>compile</code> fails) vs deploy problem (<code>no such table</code>) vs query problem (SQL error at runtime) vs data problem (200 but wrong/empty rows).</div>
+<div class="rw"><b>PostgreSQL (if you use it instead of SQLite/HANA):</b> same triage — <code>cds env get requires.db</code> must show <code>postgres</code> + credentials; test connectivity with <code>Test-NetConnection &lt;host&gt; -Port 5432</code>; case-sensitivity and sequences are the two most common gotchas. All CQL skills transfer unchanged.</div>
+</section>
+
+<!-- S12 -->
+<section class="sec rv" id="s12"><span class="snum">Section 12 • Queries</span>
+<h2>CQL debugging + CQL vs SQL</h2>
+<div class="grid2"><div><b>CQL (what you write)</b><pre><code>SELECT.from(Books)
+SELECT.from(Books).where({stock:{'>':10}})
+UPDATE(Books).set({stock:{'+=':5}}).where({ID})
+INSERT.into(Books).entries({...})
+DELETE.from(Books).where({stock:0})</code><button class="copy">Copy</button></pre></div>
+<div><b>SQL (what the DB runs)</b><pre><code>SELECT * FROM Books
+SELECT * FROM Books WHERE stock &gt; 10
+UPDATE Books SET stock = stock + 5 WHERE ID=?
+INSERT INTO Books (...) VALUES (...)
+DELETE FROM Books WHERE stock=0</code><button class="copy">Copy</button></pre></div></div>
+<div class="mbox"><pre class="mermaid">flowchart LR
+CQL[CQL in handler] --> ENG[CAP query engine] --> SQL[SQL] --> DB2[(Database)]</pre></div>
+<div class="cm"><b>Top CQL bugs in bookshop:</b> wrong fk <code>author_ID</code> vs <code>author</code>; <code>req.params[0]</code> undefined on unbound calls; <code>like</code> without wildcards; returning a string where CDS declares <code>array of bahi</code>. Enable <code>$env:DEBUG="sql"</code> — the generated SQL names the guilty column.</div>
+<ul class="chk"><li><input type="checkbox"> I can explain why CAP devs write CQL but read SQL when debugging</li></ul>
+</section>
+
+<!-- S13 -->
+<section class="sec rv" id="s13"><span class="snum">Section 13 • API</span>
+<h2>OData masterclass + PowerShell API testing + status codes</h2>
+<div class="cmd"><h4>Metadata → entity → function → action (in this order)</h4><pre><code>Invoke-WebRequest "http://localhost:4004/odata/v4/catalog/$metadata" | Select-Object StatusCode
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/bahi?$top=2"
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/totalStock()"
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/booksByPriceRange(min=10,max=13)"
+$body = @{ amount = 10 } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:4004/odata/v4/catalog/bahi(201)/addStock" -Method POST -ContentType "application/json" -Body $body
+# Every line: Uri = endpoint; Method = GET/POST/PATCH/DELETE; ContentType = json for writes; Body = ConvertTo-Json hashtable.</code><button class="copy">Copy</button></pre></div>
+<table><thead><tr><th>Status</th><th>CAP meaning</th><th>Check</th></tr></thead><tbody>
+<tr><td>200/201</td><td>worked</td><td>response body</td></tr>
+<tr><td>400</td><td>bad URL/body/query</td><td>params, types, min/max</td></tr>
+<tr><td>401</td><td>authentication</td><td>token/XSUAA → Sec 16</td></tr>
+<tr><td>403</td><td>authorization</td><td>scopes/roles → Sec 16</td></tr>
+<tr><td>404</td><td>wrong service/entity/ID</td><td>$metadata, real ID from GET collection</td></tr>
+<tr><td>405</td><td>wrong HTTP verb</td><td>GET vs POST (actions are POST)</td></tr>
+<tr><td>409</td><td>conflict/constraint</td><td>keys, unique, ETag</td></tr>
+<tr><td>500</td><td>CAP/handler exception</td><td>terminal stack trace → handler line</td></tr>
+<tr><td>502/503</td><td>upstream/CF unavailable</td><td>remote service, cf app state</td></tr>
+</tbody></table>
+<div class="cm"><b>bookshop classic:</b> <code>POST /bahi(201)/addStock</code> with <code>{"amount":0}</code> → 400 by design (your validation). Empty-body <code>POST /resetAllStock</code> needs <code>{}</code> — missing body is a 400, not a CAP bug.</div>
+<div class="cmd"><h4>GET / POST / PATCH / DELETE + headers + auth (copy-paste)</h4><pre><code># GET with query
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/bahi?$select=ID,title,stock&$top=5"
+# PATCH stock of one book
+$patch = @{ stock = 25 } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:4004/odata/v4/catalog/bahi(201)" -Method PATCH -ContentType "application/json" -Body $patch
+# DELETE one book
+Invoke-RestMethod -Uri "http://localhost:4004/odata/v4/catalog/bahi(201)" -Method DELETE
+# Custom header (e.g. correlation ID) + bearer token (hybrid/CF)
+$headers = @{ "Authorization" = "Bearer &lt;TOKEN&gt;"; "X-Correlation-ID" = "debug-001" }
+Invoke-RestMethod -Uri "http://localhost:4004/odata/v4/catalog/bahi" -Headers $headers
+# Raw status + headers view (use WebRequest, not RestMethod)
+$r = Invoke-WebRequest "http://localhost:4004/odata/v4/catalog/bahi(201)" -Method GET
+$r.StatusCode; $r.Headers["Content-Type"]</code><button class="copy">Copy</button></pre></div>
+<details class="q" data-d="i"><summary>Status-code triage drills <span class="d-i">Developer</span></summary><p><b>400:</b> log shows validation message → fix URL/body. <b>404:</b> compare URL vs <code>$metadata</code>. <b>405:</b> action called with GET → switch to POST. <b>409:</b> duplicate key/ETag → GET current row first. <b>500:</b> terminal stack trace names handler file:line → fix code. <b>502/503:</b> remote/CF down → Sec 16/18. Click any decision button in Sec 20 for the sequence.</p></details>
+</section>
+
+<!-- S14 -->
+<section class="sec rv" id="s14"><span class="snum">Section 14 • Code</span>
+<h2>Custom handler debugging + Node.js inspector + VS Code</h2>
+<div class="cmd"><h4>console.log vs debugger</h4><pre><code># console.log: output lands in the PowerShell terminal locally, in `cf logs` remotely
+# in catalog-service.js:
+console.log('addStock', req.params[0], req.data)
+console.error('FAILED', err.message)
+# VERIFY: call the action, watch the terminal line appear.</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4>Node inspector (PowerShell syntax)</h4><pre><code>node --inspect "node_modules/@sap/cds/bin/cds.js" serve
+node --inspect-brk "node_modules/@sap/cds/bin/cds.js" serve
+# open chrome://inspect in Chrome/Edge -> inspect -> Sources -> set breakpoint in srv/catalog-service.js
+# inspect = run then break on breakpoint; inspect-brk = break on first line.</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4>Your launch.json (already fixed — serve, not watch)</h4><pre><code>{
+  "version": "0.2.0",
+  "configurations": [{
+    "name": "cds serve", "type": "node-terminal",
+    "request": "launch", "command": "npx cds serve",
+    "cwd": "${workspaceFolder}"
+  }]
+}
+# F5 -> breakpoints in srv/*.js hit. Call stack / Variables / Watch / Step over-into-out all available.</code><button class="copy">Copy</button></pre></div>
+<div class="ib"><b>Handler never runs?</b> 1) name mismatch .cds vs .js, 2) bound called as unbound (missing ID), 3) <code>before</code> hook rejected with 400, 4) wrong service path (<code>/catalog</code> vs <code>/odata/v4/catalog</code>). <code>$env:DEBUG="cds*"</code> logs registered handlers at startup.</div>
+</section>
+
+<!-- S15 -->
+<section class="sec rv" id="s15"><span class="snum">Section 15 • Frontend</span>
+<h2>UI5 → CAP end-to-end + Browser DevTools</h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+U[UI5 error] --> N[Network tab] --> S[Status + URL] --> P[PowerShell retest] --> L[CAP logs] --> H[Handler] --> Q[CQL] --> D[(DB)]</pre></div>
+<div class="cmd"><h4>The 11-step UI5 triage</h4><pre><code># 1-7 in browser: F12 -> Network -> click failed request -> copy URL, method, status, response
+# 8. retest same URL in PowerShell:
+Invoke-RestMethod "PASTE_URL_HERE"
+# 9-11. still failing = CAP bug: cds watch logs -> handler file:line -> DEBUG=sql
+# fixed in UI5 only if PowerShell already returns 200.</code><button class="copy">Copy</button></pre></div>
+<div class="rw"><b>Lab:</b> UI5 shows "Request failed" for <code>searchBooks</code>. Network says <code>GET .../searchBooks(query='') → 400</code>. PowerShell confirms 400. Root cause: empty query rejected by handler — a <b>caller bug</b>, not a CAP bug. Fix the UI5 call, not the service.</div>
+</section>
+
+<!-- S16 -->
+<section class="sec rv" id="s16"><span class="snum">Section 16 • Trust</span>
+<h2>XSUAA + Destinations + S/4HANA remote debugging</h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+USR[User] --> IDP[XSUAA / IAS] --> TOK[Token + scopes] --> CAP[CAP auth] --> DST[Destination Svc] --> S4H[S/4 API]</pre></div>
+<table><thead><tr><th>Symptom</th><th>Meaning</th><th>First command</th></tr></thead><tbody>
+<tr><td>401</td><td>WHO are you? (authentication)</td><td><code>cf env</code> — XSUAA bound? token present/expired?</td></tr>
+<tr><td>403</td><td>WHAT may you do? (authorization)</td><td>role collection → scope check</td></tr>
+<tr><td>Destination not found</td><td>wrong name/binding</td><td>BTP cockpit destinations + <code>$env:DEBUG="remote"</code></td></tr>
+<tr><td>S/4 404/timeout</td><td>URL/entity/connectivity</td><td>test dest URL directly, then entity path</td></tr>
+</tbody></table>
+<div class="cmd"><h4>Remote isolation sequence</h4><pre><code>$env:DEBUG="remote"; npx cds serve   # watch outbound calls + status
+# isolate in order: 1) dest exists? 2) credentials work? 3) URL reachable?
+# 4) API returns data directly? 5) only then blame CAP mapping (cds.connect.to / entity name).
+Remove-Item Env:\DEBUG</code><button class="copy">Copy</button></pre></div>
+<div class="cm"><b>Never conflate:</b> destination OK ≠ credentials OK ≠ URL OK ≠ API OK. Test each link separately or you will chase ghosts.</div>
+</section>
+
+<!-- S17 -->
+<section class="sec rv" id="s17"><span class="snum">Section 17 • Hybrid</span>
+<h2>cds bind masterclass (local code, BTP truth)</h2>
+<div class="cmd"><h4><code>cds bind</code> — connect local CAP to cloud services</h4><pre><code>npx cds bind --help
+cf target                      # VERIFY org/space FIRST (never bind prod by accident)
+npx cds bind                   # lists bindable BTP instances
+npx cds bind --exec -- npx cds watch --profile hybrid
+npx cds env get requires.db    # VERIFY: now points at HANA, not sqlite
+# BUG SIGNS: "no service instances" -> wrong target | stale creds -> unbind, re-bind
+# docs vary by cds version: always run `npx cds help bind` for your flags.</code><button class="copy">Copy</button></pre></div>
+<div class="rm"><b>Why hybrid wins:</b> real HANA data + real destinations with local breakpoints and instant restart. Debug the cloud without deploying to it.</div>
+</section>
+
+<!-- S18 -->
+<section class="sec rv" id="s18"><span class="snum">Section 18 • Cloud</span>
+<h2>Cloud Foundry operations debugging</h2>
+<div class="cmd"><h4>Target first — always</h4><pre><code>cf --version
+cf target
+# EXPECT: api endpoint + user + org + space. DEV vs QA vs PROD mistake starts here.
+# NEVER run deploy/restart/bind without reading this output.</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4>Apps, logs, env, events</h4><pre><code>cf apps
+cf app bookshop-srv
+cf logs bookshop-srv --recent    # crash forensics: stack trace lives here
+cf logs bookshop-srv             # live tail: reproduce, watch lines arrive (Ctrl+C to stop)
+cf env bookshop-srv              # VCAP_SERVICES: hana? xsuaa? destination bound? (DO NOT share secrets)
+cf events bookshop-srv           # crashes, restarts, staging failures, OOM
+cf services
+cf service my-hana
+# 500 -> cf logs --recent | crash loop -> cf events | missing binding -> cf env</code><button class="copy">Copy</button></pre></div>
+<div class="cmd"><h4>restart vs restage vs ssh</h4><pre><code>cf restart bookshop-srv    # same droplet, fresh processes (config/env refresh, crash recovery)
+cf restage bookshop-srv    # rebuild droplet from buildpack (buildpack change, staging fix)
+cf ssh bookshop-srv        # last resort: inspect running container
+# rule: changed env/vars/scaling -> restart. changed buildpack/staging -> restage.</code><button class="copy">Copy</button></pre></div>
+</section>
+
+<!-- S19 -->
+<section class="sec rv" id="s19"><span class="snum">Section 19 • Ship</span>
+<h2>MTA + approuter + xs-app.json + mta.yaml</h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+SRC[Source] --> B[cds build --production] --> M[mbt build -p=cf] --> MT[MTAR] --> DEP[cf deploy] --> CF2[Cloud Foundry] --> LG[cf logs]</pre></div>
+<div class="cmd"><h4>Build → archive → deploy → verify</h4><pre><code>npx cds build --production
+mbt build -p=cf
+Get-ChildItem .\mta_archives\
+cf deploy .\mta_archives\bookshop_1.0.0.mtar
+cf apps
+cf logs bookshop-srv --recent
+# BUG SIGNS: mbt error -> mta.yaml requires/resources/build params | deploy error -> service creation/quota
+# startup error -> cf logs (same triage as Sec 18).</code><button class="copy">Copy</button></pre></div>
+<div class="grid2"><div class="cm"><b>xs-app.json:</b> wrong route order, wrong destination name, wrong source/target, missing auth. Symptom: approuter 404 while CAP direct URL works → approuter bug, not CAP.</div><div class="cm"><b>mta.yaml:</b> wrong module requires, misspelled service names, missing HTML5/destination resources → build OK but runtime binding missing (<code>cf env</code> proves it).</div></div>
+<div class="cmd"><h4>xs-app.json broken vs fixed + minimal mta.yaml + project tree</h4><pre><code># BROKEN: destination name typo + generic route first (shadows the API route)
+{ "routes": [ { "source": "^/(.*)$", "target": "$1", "destination": "srv-api" },
+              { "source": "^/odata/(.*)$", "target": "/odata/$1", "destination": "bookshop-srv-dest" } ] }
+# FIXED: specific API route FIRST, correct destination name, auth enforced
+{ "routes": [ { "source": "^/odata/(.*)$", "target": "/odata/$1", "destination": "bookshop-srv", "authenticationType": "xsuaa" },
+              { "source": "^/(.*)$", "target": "$1", "localDir": "resources" } ] }
+# Minimal mta.yaml sketch: module requires what resources provide (names MUST match)
+# modules: [{name: bookshop-srv, requires: [hana, xsuaa, dest]}]
+# resources: [{name: hana}, {name: xsuaa}, {name: dest}]
+# VERIFY: mbt build clean -> cf env shows all three in VCAP_SERVICES
+bookshop/; app/; db/ (schema.cds, data/); srv/ (catalog-service.cds/.js)
+package.json; mta.yaml; xs-security.json; .cdsrc.json; xs-app.json</code><button class="copy">Copy</button></pre></div>
+<div class="rw"><b>Isolation test:</b> Browser → approuter → 404, but <code>Invoke-RestMethod</code> to CAP route → 200. Verdict: approuter/xs-app.json layer. Fix routing, leave CAP alone.</div>
+</section>
+
+<!-- S20 -->
+<section class="sec rv" id="s20"><span class="snum">Section 20 • Decide</span>
+<h2>Decision tree + "what command?" table + error database</h2>
+<div class="widget"><h3>Interactive triage — click your symptom</h3>
+<div class="chips">
+<button onclick="decide('startup')">CAP won't start</button>
+<button onclick="decide('api500')">API returns 500</button>
+<button onclick="decide('ui5')">UI5 request failed</button>
+<button onclick="decide('db')">Database error</button>
+<button onclick="decide('auth401')">401 Unauthorized</button>
+<button onclick="decide('auth403')">403 Forbidden</button>
+<button onclick="decide('s4')">S/4 call failed</button>
+<button onclick="decide('deploy')">Deployment failed</button>
+<button onclick="decide('crash')">CF app crashed</button>
+<button onclick="decide('mta')">MTA build failed</button>
+</div><pre><code id="decideOut">Pick a symptom above — the exact command sequence appears here.</code></pre></div>
+<div class="mbox"><pre class="mermaid">flowchart TD
+S[CAP NOT STARTING] --> R[Read FIRST error]
+R --> N[npm / dependency? -> npm list]
+R --> M[CDS model? -> cds compile]
+R --> D[DB? -> cds env get requires.db]
+R --> A[Auth? -> cds env get requires.auth]</pre></div>
+<table><thead><tr><th>Problem</th><th>First command</th><th>Second</th><th>Looking for</th></tr></thead><tbody>
+<tr><td>CAP won't start</td><td><code>npx cds watch</code></td><td><code>npx cds compile "*"</code></td><td>first error</td></tr>
+<tr><td>DB problem</td><td><code>cds env get requires.db</code></td><td><code>$env:DEBUG="sql"</code></td><td>config / SQL</td></tr>
+<tr><td>OData problem</td><td><code>Invoke-RestMethod</code></td><td><code>compile srv --to edmx</code></td><td>URL / model</td></tr>
+<tr><td>UI5 fails</td><td>Browser Network</td><td><code>Invoke-RestMethod</code></td><td>HTTP response</td></tr>
+<tr><td>401/403</td><td><code>cf env</code></td><td>auth logs</td><td>token / scope</td></tr>
+<tr><td>S/4 fails</td><td><code>$env:DEBUG="remote"</code></td><td>cockpit destination</td><td>remote call</td></tr>
+<tr><td>Deploy fails</td><td><code>cf events</code></td><td><code>cf logs --recent</code></td><td>CF failure</td></tr>
+<tr><td>Port busy</td><td><code>Get-NetTCPConnection</code></td><td><code>Get-Process</code></td><td>owning PID</td></tr>
+</tbody></table>
+<details class="q" data-d="i"><summary>Cannot find module / ERESOLVE / ECONNREFUSED / 500 / Destination not found <span class="d-i">Developer</span></summary><div class="qmeta">Use the top search box — every error below is searchable text.</div><p><b>Cannot find module</b> → <code>npm install</code>. <b>ERESOLVE</b> → version conflict, align cds major. <b>ECONNREFUSED localhost</b> → server not running / wrong port. <b>500</b> → terminal stack trace, handler line. <b>Destination not found</b> → name mismatch or unbound service. Each: reproduce → first error → fix one thing → retest with the same command.</p></details>
+<details class="q" data-d="a"><summary>Application crashed / staging failed / OOM <span class="d-a">Expert</span></summary><p><b>Sequence:</b> <code>cf app</code> (state? instances? memory?) → <code>cf events</code> (crash? staging?) → <code>cf logs --recent</code> (exception?) → <code>cf env</code> (missing binding?). Memory maxed = scale or leak, not logic.</p></details>
+</section>
+
+<!-- S21 -->
+<section class="sec rv" id="s21"><span class="snum">Section 21 • Practice</span>
+<h2>Root-cause technique + checklists + 12 real-world labs (bookshop)</h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+SY[SYMPTOM] --> W2[WHAT exactly failed?] --> WH[WHERE did it fail?] --> RP[REPRODUCE?] --> LY[TEST THE LAYER DIRECTLY] --> LG2[WHAT DOES THE LOG SAY?] --> CH[WHAT CHANGED?] --> RC[ROOT CAUSE]</pre></div>
+<div class="grid2"><div><b>Local CAP checklist</b><ul class="chk"><li><input type="checkbox"> node/npm/cds versions healthy</li><li><input type="checkbox"> Get-Location = bookshop</li><li><input type="checkbox"> npx cds watch → listening</li><li><input type="checkbox"> /$metadata → 200</li><li><input type="checkbox"> /bahi → rows</li><li><input type="checkbox"> DEBUG=sql shows SQL</li></ul></div>
+<div><b>CF / prod checklist</b><ul class="chk"><li><input type="checkbox"> cf target = right org/space</li><li><input type="checkbox"> cf apps → started</li><li><input type="checkbox"> cf events → no crash loop</li><li><input type="checkbox"> cf logs --recent → no ERROR</li><li><input type="checkbox"> cf env → bindings present</li></ul></div></div>
+<div class="grid2" style="margin-top:12px"><div><b>OData / UI5 checklist</b><ul class="chk"><li><input type="checkbox"> /$metadata → 200</li><li><input type="checkbox"> entity GET → rows</li><li><input type="checkbox"> failing URL retested in PowerShell</li><li><input type="checkbox"> Network tab status + response captured</li></ul></div>
+<div><b>Auth / Dest / S/4 / MTA checklist</b><ul class="chk"><li><input type="checkbox"> 401 vs 403 distinguished</li><li><input type="checkbox"> destination name = cockpit name</li><li><input type="checkbox"> dest URL tested directly</li><li><input type="checkbox"> mta.yaml requires = resources</li></ul></div></div>
+<details class="q" data-d="b"><summary>Lab 1–4: model, URL, query, handler <span class="d-b">Beginner</span></summary><p><b>1.</b> Rename <code>stock</code> → <code>stockCount</code> in handler only → 500. <b>Diagnose:</b> <code>compile</code> passes (model fine) + <code>DEBUG=sql</code> names bad column → fix handler. <b>2.</b> Call <code>/Books</code> instead of <code>/bahi</code> → 404. <b>Diagnose:</b> <code>$metadata</code> lists real names. <b>3.</b> <code>booksByPriceRange(min=20,max=10)</code> → 400. <b>Diagnose:</b> handler validation, swap args. <b>4.</b> Delete <code>removeStock</code> handler, keep .cds → 500 "not implemented". <b>Diagnose:</b> <code>Select-String</code> finds no <code>.on('removeStock'</code>.</p></details>
+<details class="q" data-d="i"><summary>Lab 5–8: 401, 403, destination, S/4 <span class="d-i">Developer</span></summary><p><b>5.</b> Call protected entity without token → 401 → <code>cf env</code> + token check. <b>6.</b> Authenticated user without role → 403 → role collection. <b>7.</b> Typo destination name → "Destination not found" → cockpit + <code>DEBUG=remote</code>. <b>8.</b> S/4 entity typo → remote 404 → test dest URL directly, then entity path.</p></details>
+<details class="q" data-d="a"><summary>Lab 9–12: MTA, crash, port, hybrid <span class="d-a">Expert</span></summary><p><b>9.</b> Break <code>mta.yaml</code> requires → <code>mbt build</code> or deploy fails → fix resource name. <b>10.</b> Set CF memory tiny → crash/OOM → <code>cf events</code> + scale. <b>11.</b> Leave old <code>watch</code> running → EADDRINUSE → <code>Get-NetTCPConnection</code> + kill PID. <b>12.</b> Full chain: local → <code>cds bind</code> hybrid (HANA) → deploy → <code>cf logs</code>. Each stage verified with the same OData calls.</p></details>
+<div class="ib"><b>New additions you didn't list (bonus):</b> port-busy triage, CORS (approuter vs direct), Fiori draft/active confusion, ESM bootloader crash, SQLite CSV delimiter issues, <code>$top/$filter</code> OData query debugging, performance (<code>$env:DEBUG="sql"</code> + missing indexes), and <code>test.http</code> REST-Client variable debugging (<code>@bookID</code> must be a real ID from GET collection).</div>
+</section>
+
+<!-- S22 -->
+<section class="sec rv" id="s22"><span class="snum">Section 22 • Master</span>
+<h2>Command reference + 15 golden rules + final flow + cheat sheet</h2>
+<div class="dash"><div class="krow"><div class="k"><b>60+</b><span>commands</span></div><div class="k"><b>14</b><span>layers</span></div><div class="k"><b>9</b><span>steps</span></div><div class="k"><b>15</b><span>rules</span></div><div class="k"><b>12</b><span>labs</span></div><div class="k"><b>100%</b><span>PowerShell</span></div></div>
+<div class="crow"><div class="c"><b>Can you answer for ANY bug?</b><br>What failed? Where? Why? What evidence? What next? Root cause? Fix? Verified?<div class="bar"><i style="width:100%"></i></div></div><div class="c"><b>Version safety</b><br>Namespaces/flags vary by release. Always confirm with <code>npx cds --help</code>, <code>npx cds help watch|env|bind</code>, <code>cf help</code>.<div class="bar"><i style="width:100%"></i></div></div></div></div>
+<div class="grid2"><div class="rm"><b>15 golden rules:</b> 1 Reproduce first. 2 Read the FIRST error. 3 Never trust UI text alone. 4 Test APIs independently. 5 Status codes are layer tags. 6 Check CAP logs. 7 Check <code>cds env</code>. 8 Check bindings. 9 Test DB separately. 10 Auth ≠ authz. 11 Destination ≠ S/4. 12 Verify <code>cf target</code>. 13 No random config edits. 14 One change at a time. 15 Always verify.</div>
+<div><div class="mbox"><pre class="mermaid">flowchart TD
+BUG[BUG] --> RP2[REPRODUCE] --> LY2[IDENTIFY LAYER] --> EV[cds watch + REST + cf logs] --> RC2[ROOT CAUSE] --> FX[FIX] --> VT[RETEST + VERIFY] --> DN[DONE]</pre></div></div></div>
+<div class="cmd"><h4>Printable cheat sheet — copy to your wall</h4><pre><code># LOCAL
+npx cds watch
+npx cds serve
+npx cds env; npx cds env get requires; npx cds env get requires.db
+npx cds compile "*" --to sql
+npx cds compile srv --to edmx
+npx cds build --production
+# DEBUG (PowerShell!)
+$env:DEBUG="cds*"; npx cds watch
+$env:DEBUG="sql"; npx cds watch
+$env:DEBUG="remote"; npx cds watch
+Remove-Item Env:\DEBUG
+# HYBRID
+npx cds watch --profile hybrid
+npx cds bind; npx cds bind --exec -- npx cds watch --profile hybrid
+# API
+Invoke-RestMethod "http://localhost:4004/odata/v4/catalog/bahi"
+Invoke-WebRequest "http://localhost:4004/odata/v4/catalog/$metadata"
+# NODE
+node --version; npm --version; npx cds --version
+node --inspect "node_modules/@sap/cds/bin/cds.js" serve
+# CLOUDFOUNDRY
+cf target; cf apps; cf app &lt;app&gt;; cf services
+cf env &lt;app&gt;; cf logs &lt;app&gt; --recent; cf logs &lt;app&gt;
+cf events &lt;app&gt;; cf restart &lt;app&gt;; cf restage &lt;app&gt;
+# MTA
+mbt build -p=cf
+Get-ChildItem .\mta_archives\
+cf deploy .\mta_archives\&lt;file&gt;.mtar</code><button class="copy">Copy</button></pre></div>
+<ul class="chk"><li><input type="checkbox"> I finished all labs and can debug any layer bottom-up</li><li><input type="checkbox"> I printed / saved the cheat sheet</li></ul>
+<footer style="margin-top:18px;font-size:12px;color:var(--muted)">Built for your bookshop (cds-dk 10.1.2, cds 10.1.1, Node 24). Verify version-specific flags with <code>npx cds help &lt;cmd&gt;</code>. Never share <code>cf env</code> secrets.</footer>
+</section>
+</main>
+</div>
+<button id="top">↑</button>
+<script>
+document.documentElement.classList.add('js');
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#0a1f44',primaryTextColor:'#ffffff',primaryBorderColor:'#c9a227',lineColor:'#0a1f44',textColor:'#1c2b3a',secondaryColor:'#e6c65a',secondaryTextColor:'#221a03',tertiaryColor:'#f3f5fa',clusterBkg:'#f6f1de',clusterBorder:'#c9a227'}});
+const KEY='cap-debug-done-v1';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}};
+const save=v=>localStorage.setItem(KEY,JSON.stringify(v));
+function refreshProgress(){const boxes=[...document.querySelectorAll('.chk input')];const done=boxes.filter(b=>b.checked).length;const pct=boxes.length?Math.round(done/boxes.length*100):0;document.getElementById('ppill').textContent=pct+'% done';const secs=[...document.querySelectorAll('.sec')];const links=[...document.querySelectorAll('#nv a')];links.forEach((a,i)=>{const s=secs[i];if(!s)return;const bs=[...s.querySelectorAll('.chk input')];if(bs.length&&bs.every(b=>b.checked))a.classList.add('done');else a.classList.remove('done')});}
+document.querySelectorAll('.chk li').forEach(li=>{const cb=li.querySelector('input');li.addEventListener('click',e=>{if(e.target!==cb){cb.checked=!cb.checked;}li.classList.toggle('done',cb.checked);syncStore();});});
+function syncStore(){const boxes=[...document.querySelectorAll('.chk input')];save(boxes.map(b=>b.checked?1:0));refreshProgress();}
+(function(){const s=load();const boxes=[...document.querySelectorAll('.chk input')];boxes.forEach((b,i)=>{if(s[i]){b.checked=true;b.closest('li').classList.add('done')}});refreshProgress();})();
+document.querySelectorAll('pre button.copy').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.parentElement.querySelector('code').innerText;navigator.clipboard.writeText(code).then(()=>{btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1200)})})});
+const bar=document.getElementById('bar');addEventListener('scroll',()=>{const h=document.documentElement;const p=h.scrollTop/(h.scrollHeight-h.clientHeight)*100;bar.style.width=p+'%';const secs=[...document.querySelectorAll('.sec')];const links=[...document.querySelectorAll('#nv a')];let cur=0;secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<120)cur=i});links.forEach((a,i)=>a.classList.toggle('act',i===cur));const t=document.getElementById('top');t.style.display=h.scrollTop>600?'block':'none';},{passive:true});
+document.getElementById('top').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+document.getElementById('darkBtn').onclick=()=>document.body.classList.toggle('dark');
+document.getElementById('printBtn').onclick=()=>print();
+document.getElementById('expandAll').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=true);
+document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=false);
+document.getElementById('q').addEventListener('input',e=>{const v=e.target.value.toLowerCase();document.querySelectorAll('.sec').forEach(s=>{if(!v){s.style.display='';s.querySelectorAll('details.q').forEach(d=>d.style.display='');return;}const hit=s.innerText.toLowerCase().includes(v);s.style.display=hit?'':'none';s.querySelectorAll('details.q').forEach(d=>{d.style.display=d.innerText.toLowerCase().includes(v)?'':'none'})})});
+document.querySelectorAll('.flt button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.flt button').forEach(x=>x.classList.remove('on'));b.classList.add('on');const f=b.dataset.f;document.querySelectorAll('details.q').forEach(d=>{d.style.display=(f==='all'||d.dataset.d===f)?'':'none'})}));
+document.querySelectorAll('.tabs').forEach(t=>{t.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{t.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');const sec=b.closest('.sec');sec.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));sec.querySelector('#'+b.dataset.t).classList.add('on')}))});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.05});document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+function decide(key){const m={startup:"1. npx cds watch → read FIRST error\\n2. npm list @sap/cds (dependency?)\\n3. npx cds compile \\"*\\" (model?)\\n4. cds env get requires.db (db?)\\n5. fix ONE thing → rerun watch",api500:"1. Invoke-RestMethod same URL (reproduce)\\n2. read CAP terminal stack trace\\n3. open handler file:line\\n4. $env:DEBUG='sql' → bad CQL?\\n5. fix → retest → 200",ui5:"1. Browser Network → copy failing URL+status\\n2. paste URL in PowerShell Invoke-RestMethod\\n3. still fails = CAP bug (not UI5)\\n4. cds watch logs → handler → CQL → DB",db:"1. cds env get requires.db\\n2. npx cds deploy --to sqlite (local)\\n3. DEBUG=sql, run query\\n4. CSR: model vs deploy vs data?",auth401:"1. cf env (XSUAA bound?)\\n2. check token present/expired\\n3. test with cds watch --profile hybrid\\n4. 401 = WHO are you (authentication)",auth403:"1. check role collection -> scopes\\n2. cf env (XSUAA binding + xs-security.json scopes)\\n3. compare working vs failing user\\n4. 403 = WHAT may you do (authorization)",s4:"1. $env:DEBUG='remote'\\n2. check destination name + URL in cockpit\\n3. test destination URL directly\\n4. isolate: dest vs auth vs API vs entity",deploy:"1. cf target (right org/space?)\\n2. cf events → cf logs --recent\\n3. first ERROR = staging vs crash vs binding\\n4. fix → restage/restart → verify",crash:"1. cf app (state/instances/memory)\\n2. cf logs --recent (stack trace)\\n3. cf env (bindings?)\\n4. OOM? crash loop? missing env?",mta:"1. mbt build -p=cf (read first error)\\n2. check mta.yaml requires/resources\\n3. Get-ChildItem mta_archives\\n4. cf deploy → cf logs"};document.getElementById('decideOut').innerText=m[key]||'Pick a symptom above.';}
+</script>
+</body>
+</html>

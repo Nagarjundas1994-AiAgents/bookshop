@@ -1,0 +1,7 @@
+ID;name;descr;parent_ID
+11;Fiction;Novels and literary fiction;
+12;Non-Fiction;Biographies, essays and reference;
+13;Poetry;Poems and verse;
+14;Science Fiction;Futuristic and speculative fiction;11
+15;Mystery;Crime, detective and thriller;11
+16;Classics;Timeless literary classics;11

@@ -1,0 +1,409 @@
+@base = http://localhost:4004/odata/v4/catalog
+# Replace with a real ID from "GET all bahi" below.
+# Books use cuid (UUID). If seeded from CSV, try 201 / 207 / 251 first.
+@bookID = 201
+@authorID = 101
+@genreID = 11
+
+### 1. GET all bahi (Books) - use this to copy a real ID
+GET {{base}}/bahi
+Accept: application/json
+
+### 2. GET single bahi
+GET {{base}}/bahi({{bookID}})
+Accept: application/json
+
+### 3. GET expensive_books (price > 12)
+GET {{base}}/expensive_books
+Accept: application/json
+
+### 4. GET mostExpensive() - unbound function
+GET {{base}}/mostExpensive()
+Accept: application/json
+
+### 5. GET cheapest() - unbound function
+GET {{base}}/cheapest()
+Accept: application/json
+
+### 6. GET totalStock() - stats function
+GET {{base}}/totalStock()
+Accept: application/json
+
+### 7. GET averagePrice() - stats function
+GET {{base}}/averagePrice()
+Accept: application/json
+
+### 8. GET countOutOfStock() - stats function
+GET {{base}}/countOutOfStock()
+Accept: application/json
+
+### 9. GET booksByPriceRange(min,max) - filter function
+GET {{base}}/booksByPriceRange(min=10,max=13)
+Accept: application/json
+
+### 10. GET booksByPriceRange - error case (min > max)
+GET {{base}}/booksByPriceRange(min=20,max=10)
+Accept: application/json
+
+### 11. GET searchBooks(query) - search function
+GET {{base}}/searchBooks(query='Jane')
+Accept: application/json
+
+### 12. GET booksByAuthor(authorID) - filter function (String key, use quotes)
+GET {{base}}/booksByAuthor(authorID='{{authorID}}')
+Accept: application/json
+
+### 13. BOUND action addStock - success (adds 10 to stock)
+POST {{base}}/bahi({{bookID}})/addStock
+Content-Type: application/json
+Accept: application/json
+
+{
+  "amount": 10
+}
+
+### 14. BOUND action addStock - error case (amount must be > 0)
+POST {{base}}/bahi({{bookID}})/addStock
+Content-Type: application/json
+Accept: application/json
+
+{
+  "amount": 0
+}
+
+### 15. BOUND action removeStock - success (removes 2 from stock)
+POST {{base}}/bahi({{bookID}})/removeStock
+Content-Type: application/json
+Accept: application/json
+
+{
+  "amount": 2
+}
+
+### 16. BOUND action removeStock - error case (more than in stock)
+POST {{base}}/bahi({{bookID}})/removeStock
+Content-Type: application/json
+Accept: application/json
+
+{
+  "amount": 9999
+}
+
+### 17. BOUND action applyDiscount - success (10% off)
+POST {{base}}/bahi({{bookID}})/applyDiscount
+Content-Type: application/json
+Accept: application/json
+
+{
+  "percent": 10
+}
+
+### 18. BOUND action applyDiscount - error case (percent must be 0-100)
+POST {{base}}/bahi({{bookID}})/applyDiscount
+Content-Type: application/json
+Accept: application/json
+
+{
+  "percent": 150
+}
+
+### 19. BOUND action setPrice - success
+POST {{base}}/bahi({{bookID}})/setPrice
+Content-Type: application/json
+Accept: application/json
+
+{
+  "newPrice": 15.99
+}
+
+### 20. BOUND action setPrice - error case (must be > 0)
+POST {{base}}/bahi({{bookID}})/setPrice
+Content-Type: application/json
+Accept: application/json
+
+{
+  "newPrice": -5
+}
+
+### 21. Verify stock + price after bound actions
+GET {{base}}/bahi({{bookID}})?$select=ID,title,stock,price
+Accept: application/json
+
+### 22. CREATE bahi - error case (validation: price > 0, stock >= 0)
+POST {{base}}/bahi
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Bad Book",
+  "price": -1,
+  "stock": -5
+}
+
+### 23. UNBOUND action restockLowStock - restock books below threshold
+POST {{base}}/restockLowStock
+Content-Type: application/json
+Accept: application/json
+
+{
+  "threshold": 10,
+  "amount": 20
+}
+
+### 24. UNBOUND action discountByGenre - 10% off genre
+POST {{base}}/discountByGenre
+Content-Type: application/json
+Accept: application/json
+
+{
+  "genreID": {{genreID}},
+  "percent": 10
+}
+
+### 25. UNBOUND action resetAllStock - sets all stock to 0
+POST {{base}}/resetAllStock
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 26. Verify stock after resetAllStock
+GET {{base}}/bahi?$select=ID,title,stock
+Accept: application/json
+
+### 27. UNBOUND action deleteOutOfStock - deletes books with stock 0
+POST {{base}}/deleteOutOfStock
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 28. GET lekhaka (Authors)
+GET {{base}}/lekhaka
+Accept: application/json
+
+### 29. GET Genres
+GET {{base}}/Genres
+Accept: application/json
+
+### 30. GET Authors with Address
+GET {{base}}/lekhaka?$select=ID,name,street,city,country
+Accept: application/json
+
+### 31. GET inventoryValue() - sum(price*stock)
+GET {{base}}/inventoryValue()
+Accept: application/json
+
+### 32. GET genreStats() - per-genre counts/stock/avg price
+GET {{base}}/genreStats()
+Accept: application/json
+
+### 33. GET authorStats(authorID) - books/stock/avg rating
+GET {{base}}/authorStats(authorID='{{authorID}}')
+Accept: application/json
+
+### 34. GET booksByGenre(genreID)
+GET {{base}}/booksByGenre(genreID={{genreID}})
+Accept: application/json
+
+### 35. GET topRated(limit) - highest rated first
+GET {{base}}/topRated(limit=5)
+Accept: application/json
+
+### 36. GET newReleases(limit) - latest publishedAt first
+GET {{base}}/newReleases(limit=5)
+Accept: application/json
+
+### 37. GET lowStockBooks(threshold)
+GET {{base}}/lowStockBooks(threshold=10)
+Accept: application/json
+
+### 38. GET getReviews(bookID)
+GET {{base}}/getReviews(bookID='{{bookID}}')
+Accept: application/json
+
+### 39. GET bookRating(bookID) - avg review rating
+GET {{base}}/bookRating(bookID='{{bookID}}')
+Accept: application/json
+
+### 40. GET customersByCountry(country)
+GET {{base}}/customersByCountry(country='IND')
+Accept: application/json
+
+### 41. GET Reviews + Customers + Orders projections
+GET {{base}}/Reviews?$top=5
+Accept: application/json
+
+### 42. GET Customers
+GET {{base}}/Customers
+Accept: application/json
+
+### 43. GET Orders (catalog projection)
+GET {{base}}/Orders?$expand=customer
+Accept: application/json
+
+### 44. BOUND action rateBook - set cached rating 0..5
+POST {{base}}/bahi({{bookID}})/rateBook
+Content-Type: application/json
+Accept: application/json
+
+{
+  "rating": 4.8
+}
+
+### 45. BOUND action addReview - creates review + recalculates rating
+POST {{base}}/bahi({{bookID}})/addReview
+Content-Type: application/json
+Accept: application/json
+
+{
+  "reviewer": "Test Reader",
+  "rating": 5,
+  "title": "Loved it",
+  "comment": "Added via test.http"
+}
+
+### 46. UNBOUND action discountByAuthor - 10% off author
+POST {{base}}/discountByAuthor
+Content-Type: application/json
+Accept: application/json
+
+{
+  "authorID": "{{authorID}}",
+  "percent": 10
+}
+
+### 47. UNBOUND action recalculateRatings - rebuild cached ratings from reviews
+POST {{base}}/recalculateRatings
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 48. UNBOUND action placeOrder - customer 501 orders 1x book 201
+POST {{base}}/placeOrder
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customerID": "501",
+  "bookID": "201",
+  "quantity": 1
+}
+
+### --- AdminService (http://localhost:4004/odata/v4/admin) ---
+
+### 49. GET Admin Books
+GET http://localhost:4004/odata/v4/admin/Books?$top=5&$select=ID,title,price,stock,rating
+Accept: application/json
+
+### 50. GET Admin orderStats()
+GET http://localhost:4004/odata/v4/admin/orderStats()
+Accept: application/json
+
+### 51. GET Admin topCustomers(limit)
+GET http://localhost:4004/odata/v4/admin/topCustomers(limit=3)
+Accept: application/json
+
+### 52. GET Admin reviewsForModeration(minRating) - low reviews first
+GET http://localhost:4004/odata/v4/admin/reviewsForModeration(minRating=4)
+Accept: application/json
+
+### 53. Admin action bulkUpdatePrices - raise all 5%
+POST http://localhost:4004/odata/v4/admin/bulkUpdatePrices
+Content-Type: application/json
+Accept: application/json
+
+{
+  "percent": 5
+}
+
+### 54. Admin action recalculateOrderTotals
+POST http://localhost:4004/odata/v4/admin/recalculateOrderTotals
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 55. Admin action archiveZeroStockBooks - lists zero-stock books
+POST http://localhost:4004/odata/v4/admin/archiveZeroStockBooks
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 56. Admin action adjustLoyalty - add 50 points to customer 501
+POST http://localhost:4004/odata/v4/admin/adjustLoyalty
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customerID": "501",
+  "points": 50
+}
+
+### 57. Admin action setOrderStatus - set order 602 to Submitted
+POST http://localhost:4004/odata/v4/admin/setOrderStatus
+Content-Type: application/json
+Accept: application/json
+
+{
+  "orderID": "602",
+  "status": "Submitted"
+}
+
+### --- OrdersService (http://localhost:4004/odata/v4/orders) ---
+
+### 58. GET openOrders()
+GET http://localhost:4004/odata/v4/orders/openOrders()
+Accept: application/json
+
+### 59. GET ordersByCustomer(customerID)
+GET http://localhost:4004/odata/v4/orders/ordersByCustomer(customerID='501')
+Accept: application/json
+
+### 60. GET orderTotal(orderID)
+GET http://localhost:4004/odata/v4/orders/orderTotal(orderID='601')
+Accept: application/json
+
+### 61. Action createOrder for customer 503
+POST http://localhost:4004/odata/v4/orders/createOrder
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customerID": "503"
+}
+
+### 62. Bound action addItem - add 1x book 253 to order 602
+POST http://localhost:4004/odata/v4/orders/Orders(602)/addItem
+Content-Type: application/json
+Accept: application/json
+
+{
+  "bookID": "253",
+  "quantity": 1
+}
+
+### 63. Bound action submit order 602
+POST http://localhost:4004/odata/v4/orders/Orders(602)/submit
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 64. Bound action ship order 601 (must be Submitted first)
+POST http://localhost:4004/odata/v4/orders/Orders(601)/ship
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### 65. Action checkout order 602 (alternative to bound submit)
+POST http://localhost:4004/odata/v4/orders/checkout
+Content-Type: application/json
+Accept: application/json
+
+{
+  "orderID": "602"
+}

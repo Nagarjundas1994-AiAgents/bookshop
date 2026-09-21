@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "cds serve",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npx cds serve",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
