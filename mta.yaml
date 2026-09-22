@@ -1,14 +1,50 @@
-_schema-version: 3.3.0
-ID: bookshop
-version: 1.0.0
-description: "CAP Bookshop Application with Fiori Elements frontend"
-copyright:
-  name: Bookshop
-  url: https://example.com
+# =====================================================================================
+# mta.yaml — THE DEPLOYMENT RECIPE FOR THE WHOLE PROJECT
+# -------------------------------------------------------------------------------------
+# Beginner mental model:
+#   Think of your project as a "food delivery order" and this file as the ORDER SLIP.
+#   It tells SAP BTP (in the Cloud Foundry environment) three things:
+#     1. WHAT to deploy  -> "modules"    (the actual running apps: backend, UI, router)
+#     2. WHAT they need  -> "resources"  (helper services: database, login, file storage)
+#     3. HOW to build it -> "build-parameters" (commands to run before packing everything)
+#
+# HOW IT IS USED (where & when):
+#   - You run:  mbt build        (packs everything into ONE file: bookshop_1.0.0.mtar)
+#   - Then run: cf deploy <file>.mtar   (uploads that parcel to SAP BTP and starts it)
+#   - The deploy service reads THIS file and creates/starts every module + resource.
+#
+# TWO KEY WORDS YOU WILL SEE EVERYWHERE BELOW:
+#   - "provides" = "I OFFER this address/info to others."
+#       Example: the backend offers its URL under the nickname "srv-api".
+#   - "requires" = "I NEED this thing to work."
+#       Example: the approuter needs the backend's URL, so it requires "srv-api".
+#   Together they WIRE the apps to each other (like plugging cables between boxes).
+# =====================================================================================
 
+# Which MTA file format version this file follows. Just leave it as is.
+_schema-version: 3.3.0
+
+# ID = the name of the whole delivery parcel. Shows up in BTP cockpit as the MTA name.
+ID: bookshop
+
+# Version of your app. Increase it (1.0.1, 1.1.0, ...) every time you ship a new release.
+version: 1.0.0
+
+# Human-readable description shown in the BTP cockpit.
+description: "CAP Bookshop Application with Fiori Elements frontend"
+
+# Deploy all modules at the same time instead of one-by-one (faster deployments).
 parameters:
   enable-parallel-deployments: true
 
+# -------------------------------------------------------------------------------------
+# BUILD-PARAMETERS: "What to do BEFORE packing the parcel?"
+# Runs ONCE on your machine (or CI pipeline) before anything is uploaded.
+#   1. "npm ci"                 -> installs all libraries listed in package.json
+#   2. "cds build --production" -> compiles CDS models into HANA tables (gen/db)
+#                                  and production-ready backend code (gen/srv).
+# Result: the "gen/" folder, which the modules below point to.
+# -------------------------------------------------------------------------------------
 build-parameters:
   before-all:
     - builder: custom
@@ -16,109 +52,222 @@ build-parameters:
         - npm ci
         - npx cds build --production
 
+# =====================================================================================
+# MODULES = "THE RUNNING APPS" (things that actually start and serve users)
+# We have 4 of them. Each becomes its own app in Cloud Foundry with its own URL.
+# =====================================================================================
 modules:
 
-  # CAP backend (OData V4 services)
+  # -----------------------------------------------------------------------------------
+  # MODULE 1 of 4: "bookshop-srv" = THE BACKEND (brain of the app)
+  # -----------------------------------------------------------------------------------
+  # WHAT:  Your CAP Node.js server. Serves the OData APIs:
+  #          /odata/v4/catalog/  (CatalogService: books, authors, reviews...)
+  #          /odata/v4/admin/    (AdminService: back-office)
+  #          /odata/v4/orders/   (OrdersService: ordering flow)
+  # WHERE: Code comes from the "gen/srv" folder (produced by "cds build" above).
+  # NEEDS: - "bookshop-db"   -> the database, otherwise it has nowhere to store books.
+  #        - "bookshop-auth" -> the login service, otherwise it cannot check who you are.
+  # OFFERS: Its own URL under the nickname "srv-api", so the approuter can find it.
+  #         ${default-url} is a placeholder that BTP fills in automatically at deploy.
+  # -----------------------------------------------------------------------------------
   - name: bookshop-srv
-    type: nodejs
-    path: gen/srv
+    type: nodejs                # "Run this as a Node.js app"
+    path: gen/srv               # "Upload the code from this folder"
     parameters:
-      instances: 1
-      memory: 512M
-      disk-quota: 512M
-      buildpack: nodejs_buildpack
+      instances: 1              # How many copies to run (1 = enough for learning/small use)
+      memory: 512M              # RAM per copy
+      disk-quota: 512M          # Disk per copy
+      buildpack: nodejs_buildpack  # Tells Cloud Foundry: "this is a Node.js app, set it up"
     build-parameters:
-      builder: npm
+      builder: npm              # "Just run npm install here, nothing fancy"
     provides:
-      - name: srv-api
+      - name: srv-api           # Nickname others use to find this backend...
         properties:
-          srv-url: ${default-url}
+          srv-url: ${default-url}  # ...and this is the backend's real URL (auto-filled)
     requires:
-      - name: bookshop-db
-      - name: bookshop-auth
+      - name: bookshop-db       # "I need the database" (see RESOURCES below)
+      - name: bookshop-auth     # "I need the login service" (see RESOURCES below)
 
-  # HANA HDI deployer
+  # -----------------------------------------------------------------------------------
+  # MODULE 2 of 4: "bookshop-db-deployer" = THE DATABASE SETUP WORKER
+  # -----------------------------------------------------------------------------------
+  # WHAT:  A short-lived helper app. It runs ONCE per deployment, creates all the
+  #        tables/views in HANA (Books, Authors, Orders...) and loads the CSV
+  #        sample data, then it STOPS. It is not a website — users never open it.
+  # WHERE: Takes its instructions from the "gen/db" folder (SQL files from cds build).
+  # NEEDS: - "bookshop-db" -> the empty database container it must fill with tables.
+  # -----------------------------------------------------------------------------------
   - name: bookshop-db-deployer
-    type: hdb
-    path: gen/db
+    type: hdb                   # "hdb" = special type meaning "HANA database deployer"
+    path: gen/db                # Folder with the generated .hdbtable/.hdbview files
     parameters:
       buildpack: nodejs_buildpack
       memory: 512M
     requires:
-      - name: bookshop-db
+      - name: bookshop-db       # "Fill THIS database with my tables"
 
-  # Fiori Elements UIs -> HTML5 Application Repository (app-host)
+  # -----------------------------------------------------------------------------------
+  # MODULE 3 of 4: "bookshop-app-content" = THE WEBSITES (what users see in browser)
+  # -----------------------------------------------------------------------------------
+  # WHAT:  Your three Fiori Elements apps (homepage + browse + manage + orders):
+  #          app/index.html               (landing page with 3 cards)
+  #          app/browse/webapp/index.html (storefront: CatalogService.bahi)
+  #          app/admin/webapp/index.html  (back-office: AdminService.Books)
+  #          app/orders/webapp/index.html (ordering: OrdersService.Orders)
+  # WHERE: Uploaded from the "app" folder into the HTML5 Repository (a file shelf
+  #        for web pages on BTP). Users do NOT open this module directly —
+  #        the approuter (Module 4) fetches the pages from here and shows them.
+  # NEEDS: - "bookshop-html5-host" -> the "file shelf" service where pages are stored.
+  # NOTE:  type "html5" means: "don't run this, just store these web files."
+  # -----------------------------------------------------------------------------------
   - name: bookshop-app-content
-    type: html5
-    path: app
+    type: html5                 # "html5" = static website files, not a running server
+    path: app                   # "Upload the website files from this folder"
     build-parameters:
+      # No build commands: the UI files are static (no UI5 Tooling build step),
+      # and "before-all" already ran npm ci + cds build. MBT just packs app/ as-is.
       builder: custom
-      commands:
-        - npm install --prefix ..
-        - npx --prefix .. cds build --production
+      commands: []
       supported-platforms: []
     requires:
-      - name: bookshop-html5-host
+      - name: bookshop-html5-host  # "Store my files on THIS shelf" (see RESOURCES)
 
-  # Application router (entry point: /app/index.html, /browse, /admin, /orders)
+  # -----------------------------------------------------------------------------------
+  # MODULE 4 of 4: "bookshop-approuter" = THE FRONT DOOR / RECEPTIONIST
+  # -----------------------------------------------------------------------------------
+  # WHAT:  The ONLY address users type in the browser. It does 3 jobs:
+  #          1. LOGIN CHECK  -> "Are you logged in? No? Go to the login page first."
+  #          2. SERVE PAGES  -> "You want /browse? Here is the page from the shelf."
+  #          3. FORWARD DATA -> "You want /odata/...? I pass it to the backend
+  #             together with your login token, and bring the answer back."
+  # WHERE: Code comes from the "approuter" folder. Its traffic rules live in
+  #        approuter/xs-app.json (source = what user asked, destination = who serves it).
+  # NEEDS: - "srv-api"           -> backend address (to forward /odata calls to).
+  #        - "bookshop-auth"     -> login service (to check user identity).
+  #        - "bookshop-html5-rt" -> permission to READ pages from the file shelf.
+  # TIP:   In "requires" below, "group: destinations" means: "save this address in
+  #        the approuter's address book (called 'destinations') under this nickname."
+  #        "forwardAuthToken: true" means: "when forwarding to the backend, also
+  #        hand over the user's login token so the backend knows WHO is asking."
+  # -----------------------------------------------------------------------------------
   - name: bookshop-approuter
-    type: nodejs
-    path: approuter
+    type: nodejs                # The approuter is itself a small Node.js app
+    path: approuter             # Upload it from this folder
     parameters:
       instances: 1
-      memory: 256M
+      memory: 256M              # Needs less memory — it only forwards traffic
       disk-quota: 256M
       buildpack: nodejs_buildpack
     requires:
-      - name: srv-api
-        group: destinations
+      - name: srv-api           # "I need the backend's address..."
+        group: destinations     # "...and store it in my address book as:"
         properties:
-          name: srv-api
-          url: ~{srv-url}
-          forwardAuthToken: true
-          strictSSL: true
-      - name: bookshop-auth
-        group: xsuaa
+          name: srv-api         # Nickname used in xs-app.json ("destination": "srv-api")
+          url: ~{srv-url}       # Real URL, copied from what the backend offered (~ = copy)
+          forwardAuthToken: true  # Pass the user's login token along to the backend
+          strictSSL: true       # Always use secure https (never plain http)
+      - name: bookshop-auth     # "I need the login service..."
+        group: xsuaa            # "...as my identity checker (login/logout handling)."
         properties:
-          xsappname: ~{xsappname}
-      - name: bookshop-html5-rt
-        group: destinations
+          xsappname: ~{xsappname}  # Which login configuration is mine (copied from resource)
+      - name: bookshop-html5-rt # "I need permission to read web pages..."
+        group: destinations     # "...store that permission in my address book as:"
         properties:
-          name: html5-apps-repo-rt
-          url: ~{url}
+          name: html5-apps-repo-rt  # Nickname used in xs-app.json for serving UI pages
+          url: ~{url}           # Address of the page shelf (auto-filled at deploy)
           forwardAuthToken: true
           strictSSL: true
 
+# =====================================================================================
+# RESOURCES = "THE HELPER SERVICES" (things apps NEED but that are not apps themselves)
+# Think: electricity, water, and shelves for a shop — you don't sell them, but the
+# shop cannot run without them. BTP creates these for you during "cf deploy".
+# =====================================================================================
 resources:
 
-  # HANA HDI container
+  # -----------------------------------------------------------------------------------
+  # RESOURCE 1 of 4: "bookshop-db" = THE DATABASE (empty container for your tables)
+  # -----------------------------------------------------------------------------------
+  # WHAT:  An HDI container on SAP HANA Cloud — your private corner of the database.
+  #        The db-deployer (Module 2) creates the tables inside it;
+  #        the backend (Module 1) reads/writes books, orders, ... in it.
+  # PLAN:  "hdi-shared" = the free/low-cost shared HANA. Good for learning & demos.
+  #        (Bigger projects use a dedicated HANA Cloud instance instead.)
+  # -----------------------------------------------------------------------------------
   - name: bookshop-db
-    type: com.sap.xs.hdi-container
+    type: com.sap.xs.hdi-container  # "Create a database container for me"
     parameters:
-      service: hana
-      service-plan: hdi-shared
+      service: hana                 # ...on the HANA service...
+      service-plan: hdi-shared      # ...using the shared (cheap) plan.
 
-  # XSUAA (JWT auth, scopes User/Admin)
+  # -----------------------------------------------------------------------------------
+  # RESOURCE 2 of 4: "bookshop-auth" = THE LOGIN / SECURITY SERVICE (XSUAA)
+  # -----------------------------------------------------------------------------------
+  # WHAT:  XSUAA = the bouncer + ID-card maker. It handles login, makes secure
+  #        tokens (JWT) proving "this is user X with roles Y", and every app trusts it.
+  # FILE:  "path: xs-security.json" = the rulebook it is created with:
+  #          - xsappname     -> your app's unique name in the login system.
+  #          - scopes        -> permissions that exist (User, Admin).
+  #          - role-templates-> bundles of permissions you hand to real people
+  #                             in the BTP cockpit (e.g. give Priya the Admin role).
+  # USED BY: backend (checks tokens) + approuter (sends users to login page).
+  # Beginner tip: "scope" = what you MAY do; "role" = the badge a PERSON wears
+  # that collects scopes. You give ROLES to people, never raw scopes.
+  # -----------------------------------------------------------------------------------
   - name: bookshop-auth
-    type: org.cloudfoundry.managed-service
+    type: org.cloudfoundry.managed-service  # "Create a managed cloud service for me"
     parameters:
-      service: xsuaa
-      service-plan: application
-      path: xs-security.json
+      service: xsuaa                # ...namely the login/security service...
+      service-plan: application     # ...with the standard "application" plan.
+      path: xs-security.json        # Rulebook file (scopes + roles) uploaded with it
       config:
-        xsappname: bookshop-${space}
-        tenant-mode: dedicated
+        xsappname: bookshop-${space}  # Unique login-name; ${space} auto-adds CF space
+        tenant-mode: dedicated        # "dedicated" = this app has its own user list
 
-  # HTML5 Application Repository — host (deployer target for bookshop-app-content)
+  # -----------------------------------------------------------------------------------
+  # RESOURCE 3 of 4: "bookshop-html5-host" = THE FILE SHELF (stores your web pages)
+  # -----------------------------------------------------------------------------------
+  # WHAT:  HTML5 Application Repository, plan "app-host" = the SHELF where your
+  #        website files (Module 3) are PUT during deployment.
+  # ANALOGY: app-host = putting books ONTO the library shelf (writing/uploading).
+  # USED BY: bookshop-app-content (Module 3) uploads pages here.
+  # WHY TWO resources for the same service? BTP splits "storing" (host) from
+  # "reading at runtime" (runtime below) — like library staff vs. library visitors.
+  # -----------------------------------------------------------------------------------
   - name: bookshop-html5-host
     type: org.cloudfoundry.managed-service
     parameters:
-      service: html5-apps-repo
-      service-plan: app-host
+      service: html5-apps-repo      # The file-shelf service...
+      service-plan: app-host        # ...in "storage" mode (upload target).
 
-  # HTML5 Application Repository — runtime (consumed by the approuter)
+  # -----------------------------------------------------------------------------------
+  # RESOURCE 4 of 4: "bookshop-html5-rt" = THE READING PERMISSION for the shelf
+  # -----------------------------------------------------------------------------------
+  # WHAT:  Same shelf service, plan "app-runtime" = permission to READ pages from
+  #        the shelf while the app is running.
+  # ANALOGY: app-runtime = visitors READING books from the shelf.
+  # USED BY: bookshop-approuter (Module 4) fetches pages through this and shows
+  #        them to the browser.
+  # -----------------------------------------------------------------------------------
   - name: bookshop-html5-rt
     type: org.cloudfoundry.managed-service
     parameters:
-      service: html5-apps-repo
-      service-plan: app-runtime
+      service: html5-apps-repo      # The same file-shelf service...
+      service-plan: app-runtime     # ...but in "reading" mode (runtime access).
+
+# =====================================================================================
+# FULL JOURNEY (how a click travels through everything above):
+#   1. You open the approuter URL in the browser.
+#   2. Approuter asks XSUAA (bookshop-auth): "Is this user logged in?"
+#      No -> you see the SAP login page. Yes -> step 3.
+#   3. Approuter fetches /app/index.html via bookshop-html5-rt and shows it.
+#   4. You click "Browse Books" -> approuter serves that page the same way.
+#   5. The page calls /odata/v4/catalog/bahi -> approuter forwards it (+ your token)
+#      to bookshop-srv (via the "srv-api" destination).
+#   6. bookshop-srv checks your token with XSUAA, reads books from bookshop-db (HANA),
+#      and sends them back. Approuter hands them to the browser. Done!
+# Deploy commands (run from this project folder):
+#   mbt build                  (packs all 4 modules + 4 resources into bookshop_1.0.0.mtar)
+#   cf deploy mta_archives/bookshop_1.0.0.mtar   (deploys it to SAP BTP)
+# =====================================================================================
