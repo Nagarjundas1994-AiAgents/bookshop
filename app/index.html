@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bookshop</title>
+  <script src="https://ui5.sap.com/1.120.0/resources/sap-ui-core.js"
+    data-sap-ui-theme="sap_horizon" data-sap-ui-async="true"
+    data-sap-ui-compatVersion="edge"></script>
+  <style>
+    body { font-family: "72", Arial, sans-serif; margin: 2rem; background: #f5f6f7; }
+    h1 { font-size: 1.5rem; }
+    .cards { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .card { background: #fff; border-radius: 0.75rem; padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12); width: 260px; text-decoration: none; color: inherit; }
+    .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+    .card h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+    .card p { font-size: .875rem; color: #556; margin: 0 0 1rem; }
+    .card span { color: #0a6ed1; font-weight: bold; font-size: .875rem; }
+  </style>
+</head>
+<body>
+  <h1>📚 Bookshop</h1>
+  <p>CAP Bookshop — choose an app:</p>
+  <div class="cards">
+    <a class="card" href="./browse/webapp/index.html">
+      <h2>Browse Books</h2><p>Storefront — CatalogService.bahi</p><span>Open →</span>
+    </a>
+    <a class="card" href="./admin/webapp/index.html">
+      <h2>Manage Books</h2><p>Back-office — AdminService.Books</p><span>Open →</span>
+    </a>
+    <a class="card" href="./orders/webapp/index.html">
+      <h2>Orders</h2><p>Ordering — OrdersService.Orders</p><span>Open →</span>
+    </a>
+  </div>
+</body>
+</html>

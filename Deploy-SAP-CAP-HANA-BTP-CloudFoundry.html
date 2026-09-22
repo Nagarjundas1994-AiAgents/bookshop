@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deploy SAP CAP + HANA Cloud to BTP Cloud Foundry — Complete Handbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--navy:#0a1f44;--navy2:#132c5e;--gold:#c9a227;--gold2:#e6c65a;--bg:#f3f5fa;--card:#fff;--text:#1c2b3a;--muted:#5d6f84;--bd:#dde4ee;--green:#0e7a4f;--red:#b42318;--blue:#0a6ed1;--code:#0b1526;--grad:linear-gradient(135deg,#0a1f44,#1b3a7a 60%,#0a6ed1);--ring:0 1px 2px #0a1f4418,0 10px 28px -14px #0a1f4444}
+*{box-sizing:border-box}body{margin:0;font-family:"Inter",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+body.dark{--bg:#0a1220;--card:#141f36;--text:#e4eaf3;--muted:#93a3bb;--bd:#2a3a58;--code:#050b16}
+a{color:var(--blue)}
+header{position:sticky;top:0;z-index:60;background:linear-gradient(100deg,#071633,#0a1f44 55%,#13407c);color:#fff;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(10px);box-shadow:0 4px 22px #020a1c88}
+header h1{font-size:16px;margin:0;letter-spacing:.2px}header h1 b{color:var(--gold2)}.sub{font-size:12px;opacity:.85}
+.tb{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tb input,.tb button{background:#ffffff14;border:1px solid #ffffff3d;color:#fff;border-radius:9px;padding:7px 11px;font-size:13px}
+.tb input{min-width:200px}.tb input::placeholder{color:#cdd8ea}.tb button{cursor:pointer;font-weight:700;background:#ffffff22;transition:.2s}.tb button:hover{background:var(--gold);color:#221a03;border-color:var(--gold)}
+.tb .pill{background:var(--gold);color:#221a03;font-weight:800;border-radius:20px;padding:7px 13px;font-size:13px;white-space:nowrap}
+#bar{height:4px;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0}
+.lay{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+aside{position:sticky;top:63px;height:calc(100vh - 63px);overflow:auto;background:linear-gradient(180deg,#0a1f44,#0d2653);color:#dbe4f3;padding:14px}
+aside b.t{font-size:11px;color:var(--gold2);letter-spacing:1px}
+#nv a{display:block;padding:7px 12px;border-radius:9px;color:#dbe4f3;text-decoration:none;font-size:13px;border:1px solid transparent;transition:.18s;position:relative}
+#nv a:hover{transform:translateX(3px);background:#ffffff10}
+#nv a.act{background:#ffffff14;border-color:#c9a22766;font-weight:700;color:#fff}
+#nv a.act::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:4px;border-radius:4px;background:linear-gradient(180deg,var(--gold),var(--gold2))}
+#nv a.done::after{content:" ✓";color:var(--gold2);font-weight:800}
+main{padding:26px;max-width:1200px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071633,#0a1f44 55%,#15519b);color:#fff;border-radius:18px;padding:30px;margin-bottom:20px;box-shadow:var(--ring)}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;pointer-events:none}
+.hero::before{width:360px;height:360px;background:#0a6ed1;top:-130px;right:-70px;animation:drift 10s ease-in-out infinite alternate}
+.hero::after{width:260px;height:260px;background:var(--gold);bottom:-150px;left:25%;opacity:.28;animation:drift 13s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(40px,30px) scale(1.12)}}
+.hero h1{margin:0 0 6px;font-size:30px;letter-spacing:-.02em;position:relative;z-index:1}.hero h1 span{color:var(--gold2)}
+.hero p{position:relative;z-index:1;opacity:.94}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;position:relative;z-index:1}
+.stats div{background:#ffffff14;border:1px solid #ffffff38;border-radius:12px;padding:8px 16px;text-align:center;backdrop-filter:blur(4px)}
+.stats b{display:block;font-size:20px;color:var(--gold2)}.stats span{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+.sec{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;margin:18px 0;box-shadow:var(--ring);scroll-margin-top:90px}
+.sec>h2{margin:0 0 4px;font-weight:800;letter-spacing:-.02em}.sec>h2::after{content:"";display:block;height:4px;width:72px;border-radius:4px;background:linear-gradient(90deg,var(--gold),var(--gold2));margin-top:8px}
+.snum{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1px;color:#7a5c00;background:linear-gradient(135deg,#f6e7b2,#e6c65a);border-radius:20px;padding:3px 12px;text-transform:uppercase}body.dark .snum{color:#221a03}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1000px){.lay{grid-template-columns:1fr}aside{position:static;height:auto}.grid2,.grid3,.grid4{grid-template-columns:1fr}main{padding:14px}}
+.kpi{background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--gold);border-radius:12px;padding:12px 14px;box-shadow:var(--ring)}
+.kpi b{font-size:20px;display:block}.kpi span{font-size:12px;color:var(--muted)}
+.ib,.rw,.cm,.rm{border-radius:12px;padding:12px 16px;margin:12px 0;box-shadow:var(--ring)}
+.ib{border-left:5px solid var(--gold);background:#fdf6e0}body.dark .ib{background:#3a2f10;color:#f5e3a8}
+.rw{border-left:5px solid var(--blue);background:#e9f2fd}body.dark .rw{background:#12294d;color:#bcd6f7}
+.cm{border-left:5px solid var(--red);background:#fdecea}body.dark .cm{background:#3d1512;color:#f5b8b0}
+.rm{border-left:5px solid var(--green);background:#e6f4ec}body.dark .rm{background:#0d3325;color:#a9e5c6}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;box-shadow:var(--ring)}th,td{border:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:top}th{background:#0a1f44;color:#fff}body.dark th{background:#1b2c52}
+tbody tr:hover{background:#c9a22714}
+code{background:#e8edf5;padding:2px 7px;border-radius:6px;font-size:13px}body.dark code{background:#050b16;border:1px solid var(--bd)}
+pre{background:var(--code);color:#e4eaf3;padding:30px 14px 14px;border-radius:12px;overflow:auto;position:relative;font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;box-shadow:var(--ring);border:1px solid #ffffff14}
+pre:not(.mermaid)::before{content:"";position:absolute;top:12px;left:14px;width:34px;height:10px;border-radius:6px;background:linear-gradient(90deg,#f87171 0 10px,#fbbf24 10px 20px,#34d399 20px 30px);opacity:.9}
+pre.mermaid{background:#fff;color:#1c2b3a;border:1px solid var(--bd)}
+.mermaid g.node text{fill:#fff}.mermaid g.node rect{stroke-width:2px}
+pre button{position:absolute;top:8px;right:8px;background:#fff;border:0;border-radius:8px;padding:5px 11px;font-size:12px;cursor:pointer;font-weight:700}
+pre code{background:transparent;padding:0;border:0;color:inherit}
+.tok-c{color:#7dd3a8}.tok-k{color:var(--gold2);font-weight:700}.tok-s{color:#9ec5ff}
+code[title]{border-bottom:1px dotted var(--gold);cursor:help}
+.term-label{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold2);opacity:.85}
+.mbox{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin:12px 0;overflow:auto}body.dark .mbox{background:#fff}
+details{border:1px solid var(--bd);border-radius:11px;padding:10px 15px;margin:8px 0;background:var(--card)}
+details[open]{box-shadow:var(--ring);border-color:#c9a22788}
+summary{cursor:pointer;font-weight:700;list-style:none;display:flex;gap:10px;align-items:center;flex-wrap:wrap}summary::-webkit-details-marker{display:none}
+summary::before{content:"+";flex:0 0 26px;height:26px;border-radius:50%;background:#eee3bd;display:inline-flex;align-items:center;justify-content:center;font-weight:800}details[open] summary::before{content:"-";background:var(--gold);color:#221a03}
+.d-b,.d-i,.d-a{font-size:10px;font-weight:800;border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.d-b{background:#dcfce7;color:#166534}.d-i{background:#fef3c7;color:#92400e}.d-a{background:#fee2e2;color:#991b1b}
+.qmeta{font-size:13px;color:var(--muted);margin:6px 0}.qmeta b{color:var(--gold);filter:saturate(2)}
+.chk{list-style:none;padding:0}.chk li{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:7px 12px;margin:6px 0;font-size:14px;cursor:pointer}
+.chk input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:2px solid #94a3b8;border-radius:7px;background:#fff;cursor:pointer;position:relative;flex:0 0 20px;margin:1px 0 0}
+.chk input:checked{background:linear-gradient(135deg,#0a1f44,#0a6ed1);border-color:var(--gold)}
+.chk input:checked::after{content:"✓";color:var(--gold2);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.chk li.done{background:#fbf6e2}body.dark .chk li.done{background:#3a2f1055}
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.flt button{border:1px solid var(--gold);background:transparent;color:inherit;border-radius:20px;padding:6px 15px;font-size:13px;font-weight:700;cursor:pointer}.flt button.on{background:var(--gold);color:#221a03}
+#top{position:fixed;right:20px;bottom:20px;z-index:90;background:linear-gradient(135deg,#0a1f44,#0a6ed1);color:#fff;border:1px solid var(--gold);border-radius:50%;width:48px;height:48px;font-size:20px;cursor:pointer;display:none;box-shadow:0 8px 20px #0006}
+.widget{background:linear-gradient(180deg,#0e2248,#0a1f44);color:#fff;border-radius:14px;padding:18px;margin:12px 0;border:1px solid var(--gold);box-shadow:var(--ring)}
+.widget h3{margin:0 0 10px;color:var(--gold2);font-size:15px}
+.widget p{font-size:13px;opacity:.88}
+.widget label{font-size:12px;opacity:.85;display:block;margin-bottom:4px}
+.widget input,.widget select{background:#ffffff14;border:1px solid #ffffff44;color:#fff;border-radius:8px;padding:7px 10px;font-size:14px;width:100%}
+.widget select option{color:#111}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.wout{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.wout div{background:#ffffff12;border:1px solid #ffffff30;border-radius:10px;padding:8px 14px;min-width:140px}
+.wout b{color:var(--gold2);font-size:18px;display:block}.wout span{font-size:11px;opacity:.8}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chips button{background:#ffffff12;border:1px solid #ffffff44;color:#fff;border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;transition:.18s}
+.chips button:hover{border-color:var(--gold2)}
+.chips button.on{background:var(--gold);color:#221a03;border-color:var(--gold)}
+.js .rv{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none}.hero::before,.hero::after{animation:none}}
+@media print{aside,.tb,#bar,#top,.flt{display:none}.lay{grid-template-columns:1fr}body{background:#fff}.sec{box-shadow:none;break-inside:avoid}.js .rv{opacity:1;transform:none}}
+.tag{font-size:11px;font-weight:800;border-radius:8px;padding:2px 10px;background:#0a1f4414;border:1px solid var(--bd);color:var(--muted)}
+.ph{color:#c9a227;font-weight:700}
+footer{color:var(--muted);font-size:13px;padding:20px 4px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+<h1>Deploy SAP CAP + HANA Cloud <b>to BTP Cloud Foundry</b></h1>
+<span class="sub">Complete beginner → advanced deployment handbook · bookshop project · Windows PowerShell</span>
+<div class="tb">
+<input id="q" type="search" placeholder="Search sections, errors, commands…">
+<button id="exp">Expand all</button>
+<button id="col">Collapse</button>
+<button id="dark">Dark mode</button>
+<button id="prt">Print</button>
+<span class="pill" id="ppill">0% done</span>
+</div>
+</header>
+<div id="bar"></div>
+<div class="lay">
+<aside><b class="t">CONTENTS · 29 SECTIONS</b><nav id="nv">
+<a href="#s01">01 · Architecture Overview</a>
+<a href="#s02">02 · Prerequisites Checklist</a>
+<a href="#s03">03 · BTP Subaccount Setup</a>
+<a href="#s04">04 · Cloud Foundry Login</a>
+<a href="#s05">05 · Verify CF Quota ★</a>
+<a href="#s06">06 · HANA Cloud vs HDI</a>
+<a href="#s07">07 · Create HANA Instance</a>
+<a href="#s08">08 · Create HDI Container</a>
+<a href="#s09">09 · CAP Project Config</a>
+<a href="#s10">10 · Database (db/schema.cds)</a>
+<a href="#s11">11 · Services (srv/*.cds)</a>
+<a href="#s12">12 · mta.yaml Deep Dive</a>
+<a href="#s13">13 · cds build --production</a>
+<a href="#s14">14 · Build the MTAR</a>
+<a href="#s15">15 · Deploy to Cloud Foundry</a>
+<a href="#s16">16 · What Happens During Deploy</a>
+<a href="#s17">17 · Verify Deployment</a>
+<a href="#s18">18 · Test OData Service</a>
+<a href="#s19">19 · Database Verification</a>
+<a href="#s20">20 · Local vs Cloud</a>
+<a href="#s21">21 · Common Errors (15)</a>
+<a href="#s22">22 · Debugging Commands</a>
+<a href="#s23">23 · PowerShell Cheatsheet</a>
+<a href="#s24">24 · Complete Flow Map</a>
+<a href="#s25">25 · Production Architecture</a>
+<a href="#s26">26 · Security (XSUAA)</a>
+<a href="#s27">27 · Deployment Checklist</a>
+<a href="#s28">28 · Why Not Direct HANA?</a>
+<a href="#s29">29 · 5-Minute Quick Ref</a>
+</nav></aside>
+<main>
+<div class="hero">
+<h1>Deploy SAP CAP + HANA Cloud <span>to SAP BTP Cloud Foundry</span></h1>
+<p>A complete, practical, beginner-to-advanced deployment guide. Real <b>bookshop</b> CAP Node.js project · SAP HANA Cloud + HDI container · MTA / mbt · Cloud Foundry CLI on <b>Windows PowerShell</b>. Every component explained, every error decoded.</p>
+<div class="stats">
+<div><b>29</b><span>sections</span></div>
+<div><b>15</b><span>errors decoded</span></div>
+<div><b>60+</b><span>copyable commands</span></div>
+<div><b>7</b><span>mermaid diagrams</span></div>
+<div><b>~4 h</b><span>full walkthrough</span></div>
+<div><b>B→I→A</b><span>progression</span></div>
+</div>
+</div>
+<div class="flt" id="flt">
+<button data-f="all" class="on">All levels</button>
+<button data-f="b">Beginner</button>
+<button data-f="i">Intermediate</button>
+<button data-f="a">Advanced</button>
+</div>
+
+<!-- S01 -->
+<section class="sec rv" id="s01"><span class="snum">Section 1 · ~15 min</span>
+<h2>1 · Architecture Overview <span class="d-b">Beginner</span></h2>
+<p>One mental picture explains the whole deployment. You build on a <b>Developer PC</b>, package everything into an <b>MTAR archive</b>, push it to <b>SAP BTP Cloud Foundry</b>, where two modules come alive: the <b>Node.js CAP service</b> (<code>bookshop-srv</code>) and the <b>HDI deployer</b> (<code>bookshop-db-deployer</code>). Both talk to the same <b>HDI container</b> inside <b>SAP HANA Cloud</b>.</p>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  PC["Developer PC<br/>npm install / cds build / mbt build"] --> MTAR["MTAR archive<br/>bookshop_1.0.0.mtar"]
+  MTAR --> CF["SAP BTP Cloud Foundry<br/>org + space"]
+  CF --> SRV["bookshop-srv<br/>Node.js CAP runtime"]
+  CF --> DEP["bookshop-db-deployer<br/>HDI deployment"]
+  SRV --> HDI[("HDI Container<br/>isolated schema set")]
+  DEP --> HDI
+  HDI --> HANA[("SAP HANA Cloud<br/>managed database")]
+  CFR["Cloud Foundry Router<br/>public HTTPS route"] --> SRV
+  SRV --> API["CAP OData APIs<br/>/odata/v4/..."]
+  API --> HDI</pre></div>
+<div class="grid2">
+<div class="kpi"><b>Developer PC</b><span>Windows + PowerShell. Node.js, CDS CLI, MBT, CF CLI installed here. Builds the MTAR; never hosts production data.</span></div>
+<div class="kpi"><b>MTAR</b><span>Multi-Target Archive: versioned package of all modules + resource descriptors. The single artifact CF deploys.</span></div>
+<div class="kpi"><b>bookshop-srv</b><span>Node.js module serving OData V4. Gets HANA credentials injected via service binding — never hardcoded.</span></div>
+<div class="kpi"><b>bookshop-db-deployer</b><span>Short-lived HDI deployer. Creates tables/views in the HDI container, then stops. Re-runs on every deploy.</span></div>
+<div class="kpi"><b>HDI Container</b><span>Isolated schema +di container inside HANA Cloud. Your tables live here, separated from other apps.</span></div>
+<div class="kpi"><b>CF Router + Route</b><span>Public HTTPS entry point, e.g. <code>https://bookshop-srv.cfapps.&lt;REGION&gt;.hana.ondemand.com</code>. Created automatically at deploy.</span></div>
+</div>
+<div class="rw"><b>Real-world read:</b> traffic flows <b>Router → bookshop-srv → HDI container → HANA Cloud</b>. The deployer only runs at deploy time; at runtime only <code>srv</code> and the container matter.</div>
+<div class="ib"><b>Target project:</b> <code>bookshop/</code> with <code>app/</code>, <code>db/schema.cds</code>, <code>srv/catalog-service.cds</code>, <code>srv/admin-service.cds</code>, <code>srv/orders-service.cds</code>, <code>package.json</code>, <code>mta.yaml</code>. Your exact files may differ — the deployment mechanics are identical for any CAP app.</div>
+</section>
+
+<!-- S02 -->
+<section class="sec rv" id="s02"><span class="snum">Section 2 · ~10 min</span>
+<h2>2 · Prerequisites Checklist <span class="d-b">Beginner</span></h2>
+<p>Tick each box — progress is saved in your browser (<code>localStorage</code>). Verify with the commands on the right.</p>
+<ul class="chk" id="preq">
+<li><input type="checkbox" data-k="p1"> SAP BTP trial / global account + subaccount <span class="tag">cockpit</span></li>
+<li><input type="checkbox" data-k="p2"> Cloud Foundry environment enabled in the subaccount</li>
+<li><input type="checkbox" data-k="p3"> Cloud Foundry Runtime quota assigned to the subaccount</li>
+<li><input type="checkbox" data-k="p4"> Cloud Foundry org + space created</li>
+<li><input type="checkbox" data-k="p5"> SAP HANA Cloud entitlement + HANA Cloud instance</li>
+<li><input type="checkbox" data-k="p6"> Cloud Foundry CLI installed</li>
+<li><input type="checkbox" data-k="p7"> Node.js LTS + npm</li>
+<li><input type="checkbox" data-k="p8"> CDS CLI (<code>@sap/cds-dk</code>)</li>
+<li><input type="checkbox" data-k="p9"> MBT build tool</li>
+<li><input type="checkbox" data-k="p10"> Git + VS Code</li>
+<li><input type="checkbox" data-k="p11"> SAP BTP Cockpit access for the subaccount</li>
+</ul>
+<p><b>Verify the toolchain</b> (Windows PowerShell — run all five):</p>
+<pre><code>node --version
+npm --version
+cds --version
+cf --version
+mbt --version</code><button class="copy">Copy</button></pre>
+<p><b>How to verify each item:</b></p>
+<table><tr><th>Prerequisite</th><th>How to verify</th></tr>
+<tr><td>Global account + subaccount</td><td>BTP Cockpit → navigate to the subaccount overview page.</td></tr>
+<tr><td>Cloud Foundry enabled</td><td>Subaccount → Cloud Foundry → Environment shows an org name.</td></tr>
+<tr><td>CF Runtime quota</td><td>Cockpit entitlements for the subaccount, or §5 CLI checks.</td></tr>
+<tr><td>Org + space</td><td><code>cf orgs</code> → <code>cf spaces</code> lists them.</td></tr>
+<tr><td>HANA Cloud entitlement + instance</td><td>Cockpit entitlements + <code>cf service &lt;DB_NAME&gt;</code> = create succeeded.</td></tr>
+<tr><td>CF CLI / Node / npm / CDS / MBT</td><td>The five <code>--version</code> commands above all return versions.</td></tr>
+<tr><td>Git / VS Code</td><td><code>git --version</code> + VS Code opens the project folder.</td></tr>
+<tr><td>Cockpit access</td><td>You can open the subaccount without an access-denied error.</td></tr></table>
+<div class="cm"><b>Common mistake:</b> installing tools but skipping quota/entitlement checks (§5, §6). Tooling succeeds locally while deployment still fails in the cloud — always verify both sides.</div>
+</section>
+
+<!-- S03 -->
+<section class="sec rv" id="s03"><span class="snum">Section 3 · ~15 min</span>
+<h2>3 · BTP Subaccount Setup <span class="d-b">Beginner</span></h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  G["Global Account<br/>commercial / trial boundary"] --> S["Subaccount<br/>region + purpose boundary"]
+  S --> CFE["Cloud Foundry Environment<br/>enabled per subaccount"]
+  CFE --> O["Organization<br/>maps 1:1 to subaccount"]
+  O --> SP["Space<br/>dev / test / prod"]</pre></div>
+<table><tr><th>Level</th><th>What it is</th><th>Why it matters</th></tr>
+<tr><td><b>Global Account</b></td><td>Top-level contract / trial container. Holds entitlements, credits, users.</td><td>Trial global accounts may contain <b>several subaccounts</b> — deploy into the one that has quota.</td></tr>
+<tr><td><b>Subaccount</b></td><td>Regional, purpose-scoped tenant (e.g. <code>us10</code>, dev). Owns entitlements + quota slice.</td><td>CF Runtime quota must exist <b>in this subaccount</b>, not just anywhere in the global account.</td></tr>
+<tr><td><b>CF Organization</b></td><td>Cloud Foundry face of a subaccount (1:1 mapping).</td><td>Quotas, routes and service instances are accounted at org level.</td></tr>
+<tr><td><b>CF Space</b></td><td>Deployment lane inside an org (<code>dev</code>, <code>test</code>, <code>prod</code>).</td><td>Apps, routes and bindings live in a space. <code>cf target -o &lt;ORG&gt; -s &lt;SPACE&gt;</code> selects it.</td></tr></table>
+<div class="ib"><b>Key rule:</b> a trial global account can look healthy while the <i>specific subaccount</i> you deploy to has <b>zero CF Runtime quota</b>. Check quota in the target subaccount before building anything (§5).</div>
+</section>
+
+<!-- S04 -->
+<section class="sec rv" id="s04"><span class="snum">Section 4 · ~10 min</span>
+<h2>4 · Cloud Foundry Login Check <span class="d-b">Beginner</span></h2>
+<p>Login once, then point the CLI at your landscape. Every command below runs in <b>Windows PowerShell</b>.</p>
+<pre><code>cf login</code><button class="copy">Copy</button></pre>
+<p>Or target the API endpoint directly (replace <span class="ph">&lt;region&gt;</span>):</p>
+<pre><code>cf api https://api.cf.&lt;region&gt;.hana.ondemand.com
+# example
+cf api https://api.cf.us10-001.hana.ondemand.com
+cf login
+cf target</code><button class="copy">Copy</button></pre>
+<table><tr><th><code>cf target</code> field</th><th>Meaning</th></tr>
+<tr><td><b>API endpoint / version</b></td><td>Which CF foundation + API level you talk to. Wrong endpoint = wrong landscape.</td></tr>
+<tr><td><b>user</b></td><td>Authenticated BTP user (SSO or user/pass).</td></tr>
+<tr><td><b>org</b></td><td>Target organization (mirrors the subaccount).</td></tr>
+<tr><td><b>space</b></td><td>Target space — apps and services land here.</td></tr></table>
+<p>Target a specific org/space explicitly:</p>
+<pre><code>cf target -o &lt;ORG&gt; -s &lt;SPACE&gt;</code><button class="copy">Copy</button></pre>
+<div class="rm"><b>Remember:</b> <code>cf login</code> without a prior <code>cf api</code> may hit the wrong foundation. Always run <code>cf target</code> afterwards and read the org/space — that is where your app will go.</div>
+</section>
+
+<!-- S05 -->
+<section class="sec rv" id="s05"><span class="snum">Section 5 · ~25 min · ★ critical</span>
+<h2>5 · Verify Cloud Foundry Quota <span class="d-a">Advanced</span></h2>
+<div class="cm"><b>Why this section is ★ critical:</b> a deployment can fail even when the project is 100% correct if the org lacks quota — memory, instances, routes or service instances. Check quota <b>before</b> you build.</div>
+<pre><code>cf org &lt;ORG&gt;
+cf spaces
+cf apps
+cf routes
+cf quotas
+cf space-quota</code><button class="copy">Copy</button></pre>
+<table><tr><th>Quota dimension</th><th>What it caps</th><th>Typical failure signal</th></tr>
+<tr><td><b>Application memory</b></td><td>Sum of RAM across app instances.</td><td><code>Application memory quota exceeded</code></td></tr>
+<tr><td><b>Instances</b></td><td>Total running app instances.</td><td>Scale/start rejected.</td></tr>
+<tr><td><b>Routes</b></td><td>Total hostnames bound in the <b>organization</b>.</td><td><code>Routes quota exceeded for organization</code></td></tr>
+<tr><td><b>Service instances</b></td><td>Number of provisioned services (HDI, HANA…).</td><td><code>Service quota exceeded</code></td></tr></table>
+<div class="ib"><b>Routes trap:</b> <code>cf routes</code> shows routes in <b>your current space only</b>. Seeing <i>"No routes found"</i> there does <b>NOT</b> mean the org has free route quota — other spaces in the same org may consume it all. Always check the <b>org-level</b> quota, not just your space.</div>
+<p><b>Inspect the org through the CF v3 API</b> — get the org GUID, then its quota GUID:</p>
+<pre><code>cf curl "/v3/organizations?names=&lt;ORG_NAME&gt;"
+# from the JSON, note: guid = organization GUID,
+# relationships.quota.data.guid = quota GUID
+
+cf curl /v3/organization_quotas/&lt;QUOTA_GUID&gt;</code><button class="copy">Copy</button></pre>
+<table><tr><th>Quota JSON field</th><th>Meaning</th></tr>
+<tr><td><code>apps.total_memory_in_mb</code></td><td>Max RAM across all apps in the org.</td></tr>
+<tr><td><code>apps.total_instances</code></td><td>Max app instances in the org.</td></tr>
+<tr><td><code>routes.total_routes</code></td><td>Max routes in the org (all spaces combined).</td></tr>
+<tr><td><code>services.total_service_instances</code></td><td>Max provisioned service instances.</td></tr></table>
+<div class="widget"><h3>Quota headroom checker (interactive)</h3>
+<p>Enter what the org already uses vs. its limits (from <code>cf curl</code> above) to see if your deploy fits. Initial numbers are <b>demo defaults only</b> — replace with your live quota values.</p>
+<div class="wgrid">
+<div><label>Memory used (MB)</label><input id="qMem" type="number" value="1024" oninput="quotaCalc()"></div>
+<div><label>Memory limit (MB)</label><input id="qMemL" type="number" value="2048" oninput="quotaCalc()"></div>
+<div><label>Instances used</label><input id="qInst" type="number" value="3" oninput="quotaCalc()"></div>
+<div><label>Instances limit</label><input id="qInstL" type="number" value="10" oninput="quotaCalc()"></div>
+<div><label>Routes used</label><input id="qRoutes" type="number" value="9" oninput="quotaCalc()"></div>
+<div><label>Routes limit</label><input id="qRoutesL" type="number" value="10" oninput="quotaCalc()"></div>
+</div>
+<div class="wout">
+<div><span>MEMORY <b id="tMem">—</b></span><div class="bar"><i id="bMem" style="width:0%"></i></div></div>
+<div><span>INSTANCES <b id="tInst">—</b></span><div class="bar"><i id="bInst" style="width:0%"></i></div></div>
+<div><span>ROUTES <b id="tRoutes">—</b></span><div class="bar"><i id="bRoutes" style="width:0%"></i></div></div>
+</div>
+<p id="qVerdict" style="color:var(--gold2);font-weight:700"></p>
+</div>
+<div class="rm"><b>Accuracy rule:</b> never hardcode quota numbers from blogs. Services, plans, regions and quotas <b>vary by account, entitlement and region</b>. The only truth is your org's live quota output.</div>
+</section>
+
+<!-- S06 -->
+<section class="sec rv" id="s06"><span class="snum">Section 6 · ~15 min</span>
+<h2>6 · HANA Cloud vs HDI Container <span class="d-i">Intermediate</span></h2>
+<p>Two different things with similar names. Confusing them causes most HANA setup mistakes:</p>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  HC["SAP HANA Cloud<br/>managed database service"] --> DB["HANA Database<br/>your data instance"]
+  DB --> HDI[("HDI Container<br/>isolated design-time box")]
+  HDI --> CAP["CAP application<br/>binds to container, not DB"]</pre></div>
+<table><tr><th>SAP HANA Cloud database</th><th>Cloud Foundry HDI container</th></tr>
+<tr><td>The managed database <b>service/instance</b> (compute + storage).</td><td>An <b>isolated schema container</b> inside that database for one app.</td></tr>
+<tr><td>Shared platform capability, created once.</td><td>Created per application (<code>bookshop-db</code>), versioned with it.</td></tr>
+<tr><td>Administered in BTP Cockpit / HANA Cockpit.</td><td>Deployed by the <code>bookshop-db-deployer</code> module on every <code>cf deploy</code>.</td></tr></table>
+<div class="ib"><b>Why CAP uses an HDI container:</b> design-time CDS artifacts deploy as versioned HDI objects (tables, views, procedures) with dependency tracking and safe redeploys — instead of hand-created tables in a shared schema. Each app gets isolation, repeatable deploys and clean undeploys.</div>
+<p>Check what the marketplace offers in <b>your</b> landscape (plans vary):</p>
+<pre><code>cf marketplace -e hana-cloud</code><button class="copy">Copy</button></pre>
+<p>Typical trial plans you may see: <code>hana-free</code>, <code>hana-cloud-connection-free</code>. Exact names depend on entitlements — use what your marketplace lists.</p>
+</section>
+
+<!-- S07 -->
+<section class="sec rv" id="s07"><span class="snum">Section 7 · ~15 min</span>
+<h2>7 · Create the HANA Cloud Instance <span class="d-i">Intermediate</span></h2>
+<pre><code>cf create-service hana-cloud hana-free nagaDB
+cf services
+cf service nagaDB</code><button class="copy">Copy</button></pre>
+<table><tr><th>Token</th><th>Meaning</th></tr>
+<tr><td><code>cf create-service</code></td><td>Provisions a managed service instance in the targeted space.</td></tr>
+<tr><td><code>hana-cloud</code></td><td>Service offering: SAP HANA Cloud.</td></tr>
+<tr><td><code>hana-free</code></td><td>Service plan (trial/free tier). Replace with a plan your entitlement actually offers.</td></tr>
+<tr><td><code>nagaDB</code></td><td>Your instance name — replace <span class="ph">&lt;DB_NAME&gt;</span> freely.</td></tr></table>
+<div class="rw"><b>Creation takes time.</b> <code>cf service nagaDB</code> shows status: <b>create in progress</b> → wait; <b>create succeeded / created</b> → proceed; <b>failed</b> → read the message, check entitlements/region, retry or pick another plan. Do not continue to §8 until status is succeeded.</div>
+</section>
+
+<!-- S08 -->
+<section class="sec rv" id="s08"><span class="snum">Section 8 · ~10 min</span>
+<h2>8 · Create the HDI Container <span class="d-i">Intermediate</span></h2>
+<pre><code>cf create-service hana hdi-shared nagaHDICont
+cf services
+cf service nagaHDICont</code><button class="copy">Copy</button></pre>
+<table><tr><th>Token</th><th>Meaning</th></tr>
+<tr><td><code>hana</code></td><td>Service offering for HANA schema/HDI services.</td></tr>
+<tr><td><code>hdi-shared</code></td><td>Shared HDI container plan (runs on shared HANA Cloud capacity).</td></tr>
+<tr><td><code>nagaHDICont</code></td><td>Your container instance name — replace <span class="ph">&lt;HDI_CONTAINER&gt;</span> freely.</td></tr></table>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  APP["CAP application<br/>bookshop-srv"] --> HDI[("HDI Container<br/>nagaHDICont / bookshop-db")]
+  HDI --> HC[("SAP HANA Cloud<br/>nagaDB")]</pre></div>
+<div class="rm"><b>Relationship to remember:</b> the CAP app binds to the <b>HDI container</b>, and the container lives on <b>HANA Cloud</b>. In this handbook's <code>mta.yaml</code> the deploy creates a container resource named <code>bookshop-db</code>; a manually pre-created <code>nagaHDICont</code> is the equivalent manual path — pick one pattern per landscape and stay consistent.</div>
+</section>
+
+<!-- S09 -->
+<section class="sec rv" id="s09"><span class="snum">Section 9 · ~15 min</span>
+<h2>9 · CAP Project Configuration <span class="d-i">Intermediate</span></h2>
+<p>This handbook's real <code>package.json</code> (your versions may differ):</p>
+<pre><code>{
+  "dependencies": {
+    "@cap-js/hana": "^3",
+    "@sap/xsenv": "^6.2.2"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^3.1.1",
+    "@sap/hdi-deploy": "^5.7.0"
+  }
+}</code><button class="copy">Copy</button></pre>
+<table><tr><th>Dependency class</th><th>Examples</th><th>Rule</th></tr>
+<tr><td><b>production</b> (<code>dependencies</code>)</td><td><code>@sap/cds</code>, <code>@cap-js/hana</code>, <code>express</code>, <code>@sap/xsenv</code></td><td>Everything the running <code>bookshop-srv</code> needs. Missing prod dep = crash on CF.</td></tr>
+<tr><td><b>development</b> (<code>devDependencies</code>)</td><td><code>@sap/cds-dk</code>, <code>@cap-js/sqlite</code>, <code>@sap/hdi-deploy</code></td><td>Build/test tooling. SQLite stays local-only; HANA drives the cloud.</td></tr></table>
+<div class="cm"><b>Common mistake:</b> developing against SQLite locally, then forgetting the HANA driver (<code>@cap-js/hana</code>) in production dependencies. Local tests pass; the cloud app cannot connect. Keep both profiles working: SQLite for speed, HANA for truth.</div>
+<details class="q" data-d="b"><summary>Why does this project list @sap/hdi-deploy? <span class="d-b">Beginner</span></summary><div class="qmeta"><b>Testing:</b> MTA build roles</div><p><b>Strong answer:</b> the <code>hdb</code> deployer module needs the HDI deploy library at build/deploy time to push generated HANA artifacts into the container.</p></details>
+</section>
+
+<!-- S10 -->
+<section class="sec rv" id="s10"><span class="snum">Section 10 · ~20 min</span>
+<h2>10 · Database Layer — db/schema.cds <span class="d-i">Intermediate</span></h2>
+<p>Simplest shape (from the brief) vs this project's real model (richer — Genres, Authors, Books, Reviews, Customers, Orders, OrderItems with <code>cuid, managed</code> aspects and associations):</p>
+<pre><code>namespace sap.capire.bookshop;
+
+entity Books {
+  key ID : Integer;
+  title  : String(100);
+  author : String(100);
+  price  : Decimal(9,2);
+}</code><button class="copy">Copy</button></pre>
+<p>Your namespace, keys (<code>cuid</code> vs Integer) and fields will differ — the pipeline below is the same. During <code>cds build --production</code>:</p>
+<div class="mbox"><pre class="mermaid">flowchart LR
+  CDS["CDS model<br/>db/schema.cds"] --> CSN["CSN<br/>compiled model"]
+  CSN --> HANA["HANA artifacts<br/>hdbtable / hdbview / ..."]
+  HANA --> HDI[("HDI deploy<br/>into container")]</pre></div>
+<div class="ib"><b>Key insight:</b> you never write <code>.hdbtable</code> files by hand. CDS is the single source of truth; the compiler derives correct, dependency-ordered HANA artifacts, and the deployer applies them idempotently.</div>
+</section>
+
+<!-- S11 -->
+<section class="sec rv" id="s11"><span class="snum">Section 11 · ~15 min</span>
+<h2>11 · Service Layer — srv/*.cds <span class="d-i">Intermediate</span></h2>
+<pre><code>using { sap.capire.bookshop as my } from '../db/schema';
+
+service CatalogService {
+  entity Books as projection on my.Books;
+}</code><button class="copy">Copy</button></pre>
+<table><tr><th>Concept</th><th>Meaning</th></tr>
+<tr><td><b>projection</b></td><td>Exposes a shaped view of a persistence entity — subset of fields, renamed, access-controlled — without duplicating the table. This project exposes e.g. <code>bahi as projection on my.Books</code> plus <code>lekhaka</code>, <code>Genres</code>, <code>Reviews</code>, <code>Customers</code>, <code>Orders</code>, computed entities, actions and functions.</td></tr>
+<tr><td><b>OData exposure</b></td><td>Each <code>service</code> becomes an OData V4 endpoint (<code>/odata/v4/catalog/…</code>, <code>/odata/v4/admin</code>, <code>/odata/v4/orders</code>). Entities → entity sets; actions/functions → operations.</td></tr></table>
+<div class="rm"><b>Remember:</b> <code>db/</code> defines <i>what is stored</i>; <code>srv/</code> defines <i>what is served</i>. Deploy problems in §21 split cleanly along this line: deployer failures = <code>db/</code>; 404/empty OData = <code>srv/</code>.</div>
+</section>
+
+<!-- S12 -->
+<section class="sec rv" id="s12"><span class="snum">Section 12 · ~30 min · ★ core</span>
+<h2>12 · mta.yaml Deep Dive <span class="d-i">Intermediate</span></h2>
+<p>The exact <code>mta.yaml</code> of this bookshop (the deploy contract — read it line by line):</p>
+<pre><code>_schema-version: 3.3.0
+ID: bookshop
+version: 1.0.0
+description: "CAP Bookshop Application"
+
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+
+modules:
+
+  # CAP Application
+  - name: bookshop-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: bookshop-db
+
+  # HANA Database Deployer
+  - name: bookshop-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: bookshop-db
+
+resources:
+
+  # HANA HDI Container
+  - name: bookshop-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared</code><button class="copy">Copy</button></pre>
+<table><tr><th>Property</th><th>Meaning</th><th>Why it matters</th></tr>
+<tr><td><code>ID / version</code></td><td>App identity + version → MTAR filename <code>bookshop_1.0.0.mtar</code>.</td><td>Bump version per release; CF tracks deployment history by it.</td></tr>
+<tr><td><code>modules</code></td><td>Deployable units: <code>bookshop-srv</code> + <code>bookshop-db-deployer</code>.</td><td>Two lifecycles: long-running app vs run-once deployer.</td></tr>
+<tr><td><code>resources</code></td><td>Service instances CF must provision: <code>bookshop-db</code> HDI container.</td><td>Missing resource = binding failure at staging.</td></tr>
+<tr><td><code>type</code></td><td><code>nodejs</code> = CF app; <code>hdb</code> = HDI deployer task.</td><td>Wrong type = wrong buildpack behavior.</td></tr>
+<tr><td><code>path</code></td><td>Build output consumed: <code>gen/srv</code>, <code>gen/db</code>.</td><td>Must match <code>cds build --production</code> output. Wrong path = empty module.</td></tr>
+<tr><td><code>requires</code></td><td>Service binding wiring (srv → container; deployer → container).</td><td>How credentials get injected — no hardcoded passwords.</td></tr>
+<tr><td><code>provides</code></td><td>Exposes <code>srv-url: ${default-url}</code> for downstream consumers (approuter).</td><td>Needed once you add App Router / destinations later.</td></tr>
+<tr><td><code>build-parameters / before-all</code></td><td><code>npm ci</code> then <code>cds build --production</code> before every module build.</td><td>Guarantees <code>gen/</code> exists and is reproducible (<code>npm ci</code> uses the lockfile).</td></tr>
+<tr><td><code>builder</code></td><td><code>custom</code> (shell commands) and <code>npm</code> (module packaging).</td><td>Custom = your commands; npm = standard Node packaging.</td></tr>
+<tr><td><code>buildpack</code></td><td><code>nodejs_buildpack</code> stages and runs the code.</td><td>Pin/verify against what your foundation supports.</td></tr>
+<tr><td><code>service / service-plan</code></td><td><code>hana : hdi-shared</code> — which backing service to provision.</td><td>Must be entitled in your subaccount or provisioning fails.</td></tr></table>
+<div class="cm"><b>Do NOT "fix" deploy errors by randomly editing types, paths or plans.</b> 90% of mta.yaml failures are stale <code>gen/</code> output or missing quota/entitlement — rebuild cleanly first (§13–14) before touching this file.</div>
+</section>
+
+<!-- S13 -->
+<section class="sec rv" id="s13"><span class="snum">Section 13 · ~15 min · ★ core</span>
+<h2>13 · cds build --production <span class="d-i">Intermediate</span></h2>
+<div class="cm"><b>Use exactly:</b> <code>cds build --production</code> — NOT <code>npx cds build --production</code>, unless this project specifically requires it. (This bookshop's <code>mta.yaml</code> uses <code>npx</code> in its <code>before-all</code> hook; run the plain form yourself in PowerShell so you use the project's installed CLI consistently.) <code>npx</code> can silently fetch a different compiler version than your locked toolchain, producing artifacts your dependencies don't understand.</div>
+<pre><code>cd &lt;project&gt;
+npm install
+cds build --production</code><button class="copy">Copy</button></pre>
+<p>Generated output:</p>
+<pre><code>bookshop/
+├── gen/
+│   ├── db/        # compiled HANA artifacts → bookshop-db-deployer (path: gen/db)
+│   └── srv/       # staged Node.js service → bookshop-srv (path: gen/srv)
+├── mta_archives/  # created later by mbt build</code><button class="copy">Copy</button></pre>
+<div class="ib"><b>Rule of thumb:</b> if <code>gen/</code> is stale or suspect, delete it and rebuild. Never hand-edit files inside <code>gen/</code> — they are compiler output.</div>
+</section>
+
+<!-- S14 -->
+<section class="sec rv" id="s14"><span class="snum">Section 14 · ~10 min</span>
+<h2>14 · Build the MTAR <span class="d-i">Intermediate</span></h2>
+<pre><code>mbt build -p cf</code><button class="copy">Copy</button></pre>
+<p>Expected result:</p>
+<pre><code>mta_archives/
+└── bookshop_1.0.0.mtar</code><button class="copy">Copy</button></pre>
+<div class="mbox"><pre class="mermaid">flowchart LR
+  MBT["MBT<br/>mbt build -p cf"] --> MODS["MTA modules<br/>srv + db-deployer"]
+  MODS --> MTAR["MTAR<br/>versioned archive"]
+  MTAR --> CFD["Cloud Foundry<br/>cf deploy"]</pre></div>
+<div class="rm"><b>Remember:</b> filename encodes <code>ID_version</code> from <code>mta.yaml</code>. If the version didn't bump, you may be deploying a stale archive — check timestamps.</div>
+</section>
+
+<!-- S15 -->
+<section class="sec rv" id="s15"><span class="snum">Section 15 · ~20 min · ★ core</span>
+<h2>15 · Deploy to Cloud Foundry <span class="d-i">Intermediate</span></h2>
+<pre><code>cf deploy mta_archives/bookshop_1.0.0.mtar</code><button class="copy">Copy</button></pre>
+<table><tr><th>#</th><th>Stage</th><th>What happens</th></tr>
+<tr><td>1</td><td>Upload MTAR</td><td>Archive transferred; deploy operation ID issued (save it — needed for retry/abort).</td></tr>
+<tr><td>2</td><td>Process MTA</td><td>Modules/resources resolved against org quota and entitlements.</td></tr>
+<tr><td>3</td><td>Create/update services</td><td><code>bookshop-db</code> HDI container provisioned or reused.</td></tr>
+<tr><td>4</td><td>Bind services</td><td>Credentials injected into app environments (no passwords in code).</td></tr>
+<tr><td>5</td><td>Deploy DB deployer</td><td><code>bookshop-db-deployer</code> creates/updates tables, views, procedures.</td></tr>
+<tr><td>6</td><td>Create application</td><td><code>bookshop-srv</code> staged with the Node.js buildpack.</td></tr>
+<tr><td>7</td><td>Create route</td><td>Public HTTPS route bound (consumes org route quota!).</td></tr>
+<tr><td>8</td><td>Start application</td><td>Health check → <code>RUNNING</code>. Test OData next.</td></tr></table>
+<div class="widget"><h3>Deploy stepper (interactive)</h3>
+<p>Click through the stages to internalize the order before your first real deploy.</p>
+<div class="chips" id="depSteps">
+<button class="on" data-s="0">1 Upload</button><button data-s="1">2 Process</button><button data-s="2">3 Services</button><button data-s="3">4 Bind</button><button data-s="4">5 DB deploy</button><button data-s="5">6 App</button><button data-s="6">7 Route</button><button data-s="7">8 Start</button>
+</div><p id="depOut" style="color:var(--gold2);font-weight:600"></p></div>
+</section>
+
+<!-- S16 -->
+<section class="sec rv" id="s16"><span class="snum">Section 16 · ~15 min</span>
+<h2>16 · What Happens During Deployment <span class="d-i">Intermediate</span></h2>
+<div class="mbox"><pre class="mermaid">sequenceDiagram
+  participant Dev as Developer
+  participant CF as Cloud Foundry
+  participant DB as bookshop-db service
+  participant DEP as db-deployer
+  participant HDI as HDI Container
+  participant HANA as HANA Cloud
+  participant SRV as bookshop-srv
+  Dev->>CF: cf deploy *.mtar
+  CF->>DB: create / reuse service
+  CF->>DEP: run deployer task
+  DEP->>HDI: apply HDI artifacts
+  HDI->>HANA: persist tables/views
+  CF->>SRV: stage + bind + start
+  SRV->>HDI: connect via binding
+  CF->>Dev: route URL (RUNNING)</pre></div>
+<table><tr><th>Step</th><th>Explanation</th></tr>
+<tr><td><code>cf deploy</code></td><td>Single command fans out to service provisioning, artifact deployment and app staging.</td></tr>
+<tr><td>db service</td><td>Container instance exists before anything touches data.</td></tr>
+<tr><td>db-deployer → HDI → HANA</td><td>Schema objects are created idempotently; reruns only apply deltas.</td></tr>
+<tr><td>srv staging</td><td>Buildpack installs prod dependencies, binds credentials, starts Node.js.</td></tr>
+<tr><td>Route</td><td>Public URL bound last — only healthy apps get traffic.</td></tr></table>
+</section>
+
+<!-- S17 -->
+<section class="sec rv" id="s17"><span class="snum">Section 17 · ~10 min</span>
+<h2>17 · Verify Deployment <span class="d-b">Beginner</span></h2>
+<pre><code>cf apps
+cf routes
+cf services
+cf service nagaHDICont</code><button class="copy">Copy</button></pre>
+<table><tr><th>Check</th><th>Healthy signal</th></tr>
+<tr><td><code>cf apps</code></td><td><code>bookshop-srv</code> shows <b>started / RUNNING, web: 1/1</b>.</td></tr>
+<tr><td><code>cf routes</code></td><td>A route like <code>https://bookshop-srv.cfapps.&lt;region&gt;.hana.ondemand.com</code> mapped to the app. (Pattern only — never hardcode a real route.)</td></tr>
+<tr><td><code>cf services</code></td><td>HDI/HANA instances show <b>create succeeded</b>, bound to the app.</td></tr></table>
+<div class="cm"><b>App listed but not RUNNING?</b> Go straight to <code>cf logs &lt;APP&gt; --recent</code> (§22) — do not redeploy blindly; logs tell you whether it's staging, crashing, or quota-blocked.</div>
+</section>
+
+<!-- S18 -->
+<section class="sec rv" id="s18"><span class="snum">Section 18 · ~10 min</span>
+<h2>18 · Test the OData Service <span class="d-b">Beginner</span></h2>
+<p>Copy the route from <code>cf apps</code> / <code>cf routes</code>, then open in a browser (add auth if XSUAA is enabled, §26):</p>
+<pre><code>https://&lt;bookshop-route&gt;/odata/v4/catalog/
+https://&lt;bookshop-route&gt;/odata/v4/catalog/$metadata</code><button class="copy">Copy</button></pre>
+<table><tr><th>Probe</th><th>What it proves</th></tr>
+<tr><td>Service root (<code>/odata/v4/catalog/</code>)</td><td>App answers HTTP; service document lists entity sets.</td></tr>
+<tr><td><code>$metadata</code></td><td>Full EDMX model: entities, keys, actions, functions — matches your <code>srv/*.cds</code>.</td></tr>
+<tr><td>Entity endpoint (e.g. <code>…/bahi</code>, <code>…/Orders</code>)</td><td>End-to-end read path app → binding → HDI → HANA works.</td></tr></table>
+<div class="widget"><h3>OData URL builder (interactive)</h3>
+<div class="wgrid"><div><label>App route (no trailing /)</label><input id="oRoute" value="https://bookshop-srv.cfapps.<REGION>.hana.ondemand.com" oninput="odataBuild()"></div>
+<div><label>Service path</label><select id="oSvc" onchange="odataBuild()"><option value="catalog">catalog (CatalogService)</option><option value="admin">admin (AdminService)</option><option value="orders">orders (OrdersService)</option></select></div></div>
+<div class="wout"><div style="min-width:100%"><span>$METADATA URL</span><b id="oOut" style="font-size:13px;word-break:break-all">—</b></div></div></div>
+</section>
+
+<!-- S19 -->
+<section class="sec rv" id="s19"><span class="snum">Section 19 · ~15 min</span>
+<h2>19 · Database Verification <span class="d-i">Intermediate</span></h2>
+<p>OData working means <i>reads</i> work — now confirm the <b>objects</b> the deployer created:</p>
+<ul class="chk">
+<li><input type="checkbox" data-k="v1"> Open <b>HANA Database Explorer</b> (BTP Cockpit → HANA Cloud → tooling / BAS).</li>
+<li><input type="checkbox" data-k="v2"> Connect to the database behind your HDI container.</li>
+<li><input type="checkbox" data-k="v3"> Browse <b>Containers → your HDI container → Tables/Views</b>; expect generated objects for Books, Authors, Genres, Orders…</li>
+<li><input type="checkbox" data-k="v4"> Confirm the <code>bookshop-db-deployer</code> run logged success (<code>cf logs</code> / deploy task log).</li>
+</ul>
+<div class="ib"><b>Who creates what:</b> the <b>DB deployer</b> creates database artifacts. <code>bookshop-srv</code> only reads/writes through them. Missing tables with a healthy app = deployer failed or bound the wrong container — check §21 items 5–6.</div>
+</section>
+
+<!-- S20 -->
+<section class="sec rv" id="s20"><span class="snum">Section 20 · ~10 min</span>
+<h2>20 · Local vs Cloud <span class="d-b">Beginner</span></h2>
+<table><tr><th>Dimension</th><th>Local (SQLite)</th><th>Cloud (HANA)</th></tr>
+<tr><td><b>Database</b></td><td>File-based SQLite (<code>@cap-js/sqlite</code>).</td><td>HANA Cloud via HDI container (<code>@cap-js/hana</code>).</td></tr>
+<tr><td><b>Configuration</b></td><td><code>cds watch</code> defaults; no bindings.</td><td>CF service bindings injected as <code>VCAP_SERVICES</code>.</td></tr>
+<tr><td><b>Deployment</b></td><td>None — run from source.</td><td><code>cds build → mbt build → cf deploy</code>.</td></tr>
+<tr><td><b>Data persistence</b></td><td>Local file; ephemeral, per-machine.</td><td>Managed, backed-up, survives restarts.</td></tr>
+<tr><td><b>Authentication</b></td><td>Usually mocked/off.</td><td>XSUAA OAuth when configured (§26).</td></tr>
+<tr><td><b>Routes</b></td><td><code>localhost:4004</code>.</td><td>CF-managed HTTPS route + quota.</td></tr>
+<tr><td><b>Services</b></td><td>Bound via <code>default-env.json</code> if at all.</td><td>Bound via MTA <code>requires</code>.</td></tr>
+<tr><td><b>Monitoring / Scaling</b></td><td>Console logs; one instance.</td><td><code>cf logs</code>, metrics, <code>cf scale</code> multi-instance.</td></tr></table>
+</section>
+
+<!-- S21 -->
+<section class="sec rv" id="s21"><span class="snum">Section 21 · ~40 min · ★ reference</span>
+<h2>21 · Common Errors — All 15 Decoded <span class="d-a">Advanced</span></h2>
+<div class="flt" style="margin-bottom:6px"><button class="on" onclick="$$('details.q').forEach(d=>d.open=true)">Expand errors</button><button onclick="$$('#s21 details.q').forEach(d=>d.open=false)">Collapse</button></div>
+<details class="q" data-d="a"><summary>1 · Routes quota exceeded <span class="d-a">Advanced</span></summary><p><b>Error:</b> <code>Routes quota exceeded for organization</code></p><p><b>Meaning:</b> org-level route quota exhausted across ALL spaces.</p><p><b>Diagnose:</b> <code>cf routes</code> (all spaces) · <code>cf curl /v3/organization_quotas/&lt;GUID&gt;</code> → <code>routes.total_routes</code>.</p><p><b>Solution:</b> delete unused routes (<code>cf delete-route</code>), remove stale apps, or request more quota. <b>Do NOT</b> recreate the space hoping quota follows — it is org-scoped.</p></details>
+<details class="q" data-d="a"><summary>2 · Application memory quota exceeded <span class="d-a">Advanced</span></summary><p><b>Error:</b> staging/start rejected on memory.</p><p><b>Diagnose:</b> <code>cf org &lt;ORG&gt;</code> · compare <code>apps.total_memory_in_mb</code> used vs limit; <code>cf app &lt;APP&gt;</code> shows requested RAM.</p><p><b>Solution:</b> stop unused apps, lower requested memory, or raise quota. <b>Do NOT</b> shrink memory below what Node.js needs to stage.</p></details>
+<details class="q" data-d="i"><summary>3 · No space quota <span class="d-i">Intermediate</span></summary><p><b>Error:</b> deploy blocked referencing the space quota.</p><p><b>Diagnose:</b> <code>cf space-quota</code> · <code>cf space &lt;SPACE&gt;</code>.</p><p><b>Solution:</b> target a space with quota or ask the org manager to adjust the space quota. <b>Do NOT</b> edit <code>mta.yaml</code> memory to dodge it blindly.</p></details>
+<details class="q" data-d="a"><summary>4 · Service quota exceeded <span class="d-a">Advanced</span></summary><p><b>Error:</b> new HDI/HANA instance refused.</p><p><b>Diagnose:</b> <code>cf services</code> count vs <code>services.total_service_instances</code>.</p><p><b>Solution:</b> reuse the existing container, delete orphans, or raise quota. <b>Do NOT</b> create duplicate containers per retry.</p></details>
+<details class="q" data-d="i"><summary>5 · HANA service creation failed <span class="d-i">Intermediate</span></summary><p><b>Error:</b> <code>cf service &lt;DB&gt;</code> shows <code>failed</code>.</p><p><b>Diagnose:</b> read the service message; verify entitlement/region/plan via <code>cf marketplace -e hana-cloud</code>.</p><p><b>Solution:</b> pick an entitled plan+region, delete the failed instance, recreate. <b>Do NOT</b> proceed to HDI creation first.</p></details>
+<details class="q" data-d="i"><summary>6 · HDI deployer failed <span class="d-i">Intermediate</span></summary><p><b>Error:</b> <code>bookshop-db-deployer</code> exits non-zero; tables missing.</p><p><b>Diagnose:</b> deploy task logs · <code>cf logs</code> · check <code>gen/db</code> exists and is fresh.</p><p><b>Solution:</b> clean rebuild (<code>cds build --production</code>), fix CDS compile errors, redeploy. <b>Do NOT</b> hand-create the missing tables.</p></details>
+<details class="q" data-d="b"><summary>7 · npm ci failed <span class="d-b">Beginner</span></summary><p><b>Error:</b> lockfile/registry failure in <code>before-all</code>.</p><p><b>Diagnose:</b> run <code>npm ci</code> locally in PowerShell; read the first error (network? lockfile out of sync?).</p><p><b>Solution:</b> <code>npm install</code> to refresh the lockfile, commit it, rebuild. <b>Do NOT</b> delete the lockfile to "fix" it.</p></details>
+<details class="q" data-d="i"><summary>8 · ERESOLVE dependency error <span class="d-i">Intermediate</span></summary><p><b>Error:</b> peer-dependency conflict during install.</p><p><b>Diagnose:</b> note the conflicting packages in the log; check <code>@sap/cds</code> vs <code>@cap-js/*</code> version matrix.</p><p><b>Solution:</b> align versions deliberately (upgrade the lagging package). <b>Do NOT</b> ship <code>--legacy-peer-deps</code> as the permanent fix.</p></details>
+<details class="q" data-d="i"><summary>9 · cds build failed <span class="d-i">Intermediate</span></summary><p><b>Error:</b> compiler rejects the model.</p><p><b>Diagnose:</b> run <code>cds build --production</code> alone; fix the first CDS error top-down.</p><p><b>Solution:</b> correct <code>db/</code>/<code>srv/</code> syntax, rebuild, then <code>mbt build</code>. <b>Do NOT</b> deploy the previous MTAR "to test".</p></details>
+<details class="q" data-d="i"><summary>10 · mbt build failed <span class="d-i">Intermediate</span></summary><p><b>Error:</b> MBT aborts before producing an MTAR.</p><p><b>Diagnose:</b> validate <code>mta.yaml</code> (indentation, paths <code>gen/srv</code> + <code>gen/db</code>), confirm <code>gen/</code> was built.</p><p><b>Solution:</b> fix descriptor/build order, rebuild. <b>Do NOT</b> zip modules manually.</p></details>
+<details class="q" data-d="a"><summary>11 · MTAR deployment failed <span class="d-a">Advanced</span></summary><p><b>Error:</b> <code>cf deploy</code> aborts mid-operation.</p><p><b>Diagnose:</b> note the <b>operation ID</b>; inspect which stage (§15) aborted + its log.</p><p><b>Solution:</b> fix the stage cause, then <code>cf deploy -i &lt;OP_ID&gt; -a retry</code> or <code>-a abort</code>. <b>Do NOT</b> fire a fresh deploy over a half-applied one.</p></details>
+<details class="q" data-d="i"><summary>12 · 503 Service Unavailable <span class="d-i">Intermediate</span></summary><p><b>Error:</b> route exists but returns 503.</p><p><b>Diagnose:</b> <code>cf apps</code> (is it RUNNING?) · <code>cf logs &lt;APP&gt; --recent</code> · check route→app mapping.</p><p><b>Solution:</b> start/fix the app, remap route if needed. <b>Do NOT</b> assume a DNS problem first.</p></details>
+<details class="q" data-d="i"><summary>13 · Application crashes on start <span class="d-i">Intermediate</span></summary><p><b>Error:</b> <code>CRASHED</code> / restart loop.</p><p><b>Diagnose:</b> <code>cf logs &lt;APP&gt; --recent</code> + <code>cf events &lt;APP&gt;</code>; look for missing prod deps or binding errors.</p><p><b>Solution:</b> promote missing deps to <code>dependencies</code>, fix binding names, restage. <b>Do NOT</b> raise memory as the first fix.</p></details>
+<details class="q" data-d="i"><summary>14 · App starts but route doesn't work <span class="d-i">Intermediate</span></summary><p><b>Error:</b> RUNNING app, dead URL.</p><p><b>Diagnose:</b> <code>cf routes</code> + <code>cf app &lt;APP&gt;</code> — is the route actually bound? Correct path (<code>/odata/v4/…</code>)?</p><p><b>Solution:</b> map the route, correct the path/service name. <b>Do NOT</b> rebuild the MTAR for a routing issue.</p></details>
+<details class="q" data-d="a"><summary>15 · Destination errors <span class="d-a">Advanced</span></summary><p><b>Error:</b> calls to external S/4HANA/REST backends fail (only when destinations are configured).</p><p><b>Diagnose:</b> destination service instance + binding, connectivity, certificates, proxy settings.</p><p><b>Solution:</b> fix the destination definition/binding, not the CAP code. <b>Do NOT</b> add Destination/XSUAA services unless the app requires them.</p></details>
+</section>
+
+<!-- S22 -->
+<section class="sec rv" id="s22"><span class="snum">Section 22 · ~15 min</span>
+<h2>22 · Deployment Debugging Commands <span class="d-i">Intermediate</span></h2>
+<table><tr><th>Command</th><th>What it tells you</th></tr>
+<tr><td><code>cf apps</code></td><td>All apps + state in the space.</td></tr>
+<tr><td><code>cf app &lt;APP&gt;</code></td><td>Instances, memory, routes, bindings for one app.</td></tr>
+<tr><td><code>cf logs &lt;APP&gt; --recent</code></td><td>Recent log dump (crashes, staging errors).</td></tr>
+<tr><td><code>cf logs &lt;APP&gt;</code></td><td>Live tail during restage/repro.</td></tr>
+<tr><td><code>cf events &lt;APP&gt;</code></td><td>Platform events: starts, crashes, OOM kills.</td></tr>
+<tr><td><code>cf services</code> / <code>cf service &lt;SERVICE&gt;</code></td><td>Instance inventory / single-instance status + message.</td></tr>
+<tr><td><code>cf routes</code></td><td>Space routes and their app mappings.</td></tr>
+<tr><td><code>cf org &lt;ORG&gt;</code> / <code>cf space</code> / <code>cf space-quota</code> / <code>cf quotas</code></td><td>Quota context at org / space level.</td></tr>
+<tr><td><code>cf curl …</code></td><td>Raw CF API (org GUIDs, quota objects — §5).</td></tr>
+<tr><td><code>cf deploy</code></td><td>Deploy an MTAR (yields an operation ID).</td></tr>
+<tr><td><code>cf deploy -i &lt;OP_ID&gt; -a retry</code></td><td>Resume an aborted deploy after fixing the cause.</td></tr>
+<tr><td><code>cf deploy -i &lt;OP_ID&gt; -a abort</code></td><td>Cancel a stuck deploy before starting clean.</td></tr>
+<tr><td><code>cf dmol -i &lt;OP_ID&gt;</code></td><td>Monitor/track the deploy operation log.</td></tr></table>
+</section>
+
+<!-- S23 -->
+<section class="sec rv" id="s23"><span class="snum">Section 23 · ~10 min · ★ print me</span>
+<h2>23 · PowerShell Cheatsheet — Full Flow <span class="d-b">Beginner</span></h2>
+<pre><code># 0 · go to project
+cd &lt;project&gt;
+
+# 1 · install + production build
+npm install
+cds build --production
+
+# 2 · package MTAR
+mbt build -p cf
+
+# 3 · connect + target
+cf login
+cf target -o &lt;ORG&gt; -s &lt;SPACE&gt;
+
+# 4 · services
+cf services
+cf create-service hana hana-free &lt;DB_NAME&gt;
+cf create-service hana hdi-shared &lt;HDI_NAME&gt;
+cf services
+
+# 5 · deploy
+cf deploy mta_archives/&lt;FILE&gt;.mtar
+
+# 6 · verify + logs
+cf apps
+cf routes
+cf logs &lt;APP&gt; --recent</code><button class="copy">Copy</button></pre>
+</section>
+
+<!-- S24 -->
+<section class="sec rv" id="s24"><span class="snum">Section 24 · ~10 min</span>
+<h2>24 · Complete Deployment Flow Map <span class="d-b">Beginner</span></h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  A["1 Subaccount"] --> B["2 Enable CF"]
+  B --> C["3 Org + Space"]
+  C --> D["4 Verify quota ★"]
+  D --> E["5 HANA Cloud"]
+  E --> F["6 HDI Container"]
+  F --> G["7 Configure CAP"]
+  G --> H["8 mta.yaml"]
+  H --> I["9 npm ci"]
+  I --> J["10 cds build"]
+  J --> K["11 mbt build"]
+  K --> L["12 MTAR"]
+  L --> M["13 cf deploy"]
+  M --> N["14 Verify services"]
+  N --> O["15 Verify app"]
+  O --> P["16 Verify route"]
+  P --> Q["17 Test OData"]
+  Q --> R["18 Verify HANA objects"]</pre></div>
+<div class="rm"><b>How to use this map:</b> never skip 4 (quota) or 14–18 (verification). Skipped verification is how "deployed but broken" happens.</div>
+</section>
+
+<!-- S25 -->
+<section class="sec rv" id="s25"><span class="snum">Section 25 · ~15 min</span>
+<h2>25 · Production-Style Architecture <span class="d-a">Advanced</span></h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  UI["Fiori / UI5"] --> AR["App Router<br/>single entry + auth"]
+  AR --> DX["Destination / XSUAA<br/>identity + backend access"]
+  DX --> CAP["CAP Service<br/>bookshop-srv"]
+  CAP --> HDI[("HANA HDI")]
+  CAP --> S4["External S/4HANA APIs"]
+  CAP --> AI["SAP AI Core"]
+  CAP --> EM["Event Mesh"]</pre></div>
+<div class="ib"><b>Optional, not mandatory:</b> App Router, XSUAA, Destination Service, HTML5 App Repository, S/4HANA connectivity, AI Core and Event Mesh are <b>extensions</b>. Add each only when a requirement demands it — the basic deployment in §§1–18 needs none of them. Unneeded services burn quota (§5) and create failure surfaces (§21-15).</div>
+</section>
+
+<!-- S26 -->
+<section class="sec rv" id="s26"><span class="snum">Section 26 · ~15 min</span>
+<h2>26 · Security Essentials <span class="d-a">Advanced</span></h2>
+<table><tr><th>Pillar</th><th>Question answered</th><th>SAP mechanism</th></tr>
+<tr><td><b>Authentication</b></td><td>Who are you?</td><td>XSUAA-backed OAuth login (users prove identity).</td></tr>
+<tr><td><b>Authorization</b></td><td>What may you do?</td><td>Scopes + role collections → CDS <code>@requires</code> restrictions.</td></tr>
+<tr><td><b>Connectivity</b></td><td>How does the app reach backends safely?</td><td>Destination service + service bindings (no credentials in code).</td></tr></table>
+<div class="grid2"><div class="kpi"><b>XSUAA</b><span>OAuth identity provider service. Issues tokens; app validates them.</span></div>
+<div class="kpi"><b>Scopes</b><span>Fine-grained permissions (e.g. <code>Books.read</code>) checked by the service.</span></div>
+<div class="kpi"><b>Role collections</b><span>Bundles of scopes assigned to users in the cockpit.</span></div>
+<div class="kpi"><b>Service bindings</b><span>CF-injected credentials (HANA, XSUAA, destinations) via <code>VCAP_SERVICES</code>.</span></div></div>
+<div class="rm"><b>Scope correctly:</b> the simplest bookshop deploy needs <b>no XSUAA</b>. Add it when you need login/roles — not "just in case".</div>
+</section>
+
+<!-- S27 -->
+<section class="sec rv" id="s27"><span class="snum">Section 27 · ~15 min · ★ do this</span>
+<h2>27 · Interactive Deployment Checklist <span class="d-b">Beginner</span></h2>
+<p>Your deploy gate — every box persists in this browser. Do not run <code>cf deploy</code> with unchecked boxes above it.</p>
+<div class="grid2">
+<div><b>BTP</b><ul class="chk"><li><input type="checkbox" data-k="c1"> Subaccount chosen (region known)</li><li><input type="checkbox" data-k="c2"> CF environment enabled</li><li><input type="checkbox" data-k="c3"> Entitlements present (CF runtime, HANA)</li></ul>
+<b>Cloud Foundry</b><ul class="chk"><li><input type="checkbox" data-k="c4"> <code>cf login</code> + <code>cf target -o &lt;ORG&gt; -s &lt;SPACE&gt;</code></li><li><input type="checkbox" data-k="c5"> Org + space confirmed in <code>cf target</code></li></ul>
+<b>Quota</b><ul class="chk"><li><input type="checkbox" data-k="c6"> Org quota checked (memory/instances/routes/services)</li><li><input type="checkbox" data-k="c7"> Route headroom confirmed (§5 trap understood)</li></ul>
+<b>HANA</b><ul class="chk"><li><input type="checkbox" data-k="c8"> HANA Cloud instance = create succeeded</li><li><input type="checkbox" data-k="c9"> HDI container instance = create succeeded</li></ul></div>
+<div><b>CAP + MTA</b><ul class="chk"><li><input type="checkbox" data-k="c10"> Prod deps include HANA driver</li><li><input type="checkbox" data-k="c11"> <code>mta.yaml</code> paths match <code>gen/srv</code>, <code>gen/db</code></li></ul>
+<b>Build</b><ul class="chk"><li><input type="checkbox" data-k="c12"> <code>npm ci</code> clean</li><li><input type="checkbox" data-k="c13"> <code>cds build --production</code> clean</li><li><input type="checkbox" data-k="c14"> <code>mbt build -p cf</code> → MTAR exists</li></ul>
+<b>Deploy + Verify + Debug</b><ul class="chk"><li><input type="checkbox" data-k="c15"> <code>cf deploy</code> completed (op ID saved)</li><li><input type="checkbox" data-k="c16"> <code>cf apps</code> RUNNING · route bound · OData 200 · HANA objects visible</li><li><input type="checkbox" data-k="c17"> Know first debug: <code>cf logs &lt;APP&gt; --recent</code></li></ul></div>
+</div>
+</section>
+
+<!-- S28 -->
+<section class="sec rv" id="s28"><span class="snum">Section 28 · ~15 min · ★ concept</span>
+<h2>28 · Why Not Connect Directly to HANA? <span class="d-i">Intermediate</span></h2>
+<div class="mbox"><pre class="mermaid">flowchart TD
+  HC["HANA Cloud<br/>Database"] --> HDI[("HDI Container")]
+  HDI --> DEP["CAP DB module<br/>db-deployer"]
+  DEP --> SRV["CAP Service<br/>bookshop-srv"]
+  SRV --> API["OData API<br/>only public surface"]</pre></div>
+<p>A hardcoded username/password connection would leak credentials into code, bypass container isolation and versioning, break on every credential rotation, and expose raw SQL to the internet. Instead, Cloud Foundry <b>service bindings</b> inject per-instance credentials as environment (<code>VCAP_SERVICES</code>); the CAP runtime reads them via <code>@sap/xsenv</code>/cds env resolution. Credentials rotate without code changes, each app sees only its container, and the only public surface is the OData API.</p>
+<div class="ib"><b>Interview-ready sentence:</b> the app never knows a password — the platform binds a container-scoped credential set into its environment, and HDI versioning keeps schema changes repeatable.</div>
+</section>
+
+<!-- S29 -->
+<section class="sec rv" id="s29"><span class="snum">Section 29 · ~5 min · ★ quick ref</span>
+<h2>29 · 5-Minute Quick Reference <span class="d-b">Beginner</span></h2>
+<p>Essentials only. Replace every <span class="ph">&lt;PLACEHOLDER&gt;</span>.</p>
+<pre><code>cf login
+cf target -o &lt;ORG&gt; -s &lt;SPACE&gt;
+cf services
+cf create-service hana hana-free &lt;DB_NAME&gt;
+cf create-service hana hdi-shared &lt;HDI_CONTAINER&gt;
+npm ci
+cds build --production
+mbt build -p cf
+cf deploy mta_archives/&lt;MTAR&gt;.mtar
+cf apps
+cf routes
+cf logs &lt;APP&gt; --recent</code><button class="copy">Copy</button></pre>
+<div class="rm"><b>Progression complete:</b> Beginner (§§1–4, 17–18, 20, 23, 29) → Intermediate (§§6–16, 19, 22, 28) → Advanced (§§5, 21, 25–26). Re-run the §27 gate on every future deploy. Good luck — deploy with confidence.</div>
+</section>
+</main>
+</div>
+<button id="top" title="Back to top">↑</button>
+<footer>SAP CAP + HANA Cloud → BTP Cloud Foundry · Deployment Handbook · Placeholders <span class="ph">&lt;ORG&gt; &lt;SPACE&gt; &lt;REGION&gt; &lt;DB_NAME&gt; &lt;HDI_CONTAINER&gt; &lt;APP_NAME&gt;</span> must be replaced with your values.</footer>
+<script>
+document.body.classList.add('js');
+const KEY='cap-deploy-done-v1';
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#0a1f44',primaryTextColor:'#ffffff',primaryBorderColor:'#c9a227',lineColor:'#0a1f44',textColor:'#1c2b3a',secondaryColor:'#e6c65a',secondaryTextColor:'#221a03',tertiaryColor:'#f3f5fa',clusterBkg:'#f6f1de',clusterBorder:'#c9a227'}});
+const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
+// reveal
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.05});
+$$('.rv').forEach(el=>io.observe(el));
+// sidebar active + progress bar
+const secs=$$('.sec'),links=$$('#nv a'),bar=$('#bar'),top=$('#top');
+addEventListener('scroll',()=>{const h=document.documentElement;const p=h.scrollTop/(h.scrollHeight-h.clientHeight||1);bar.style.width=(p*100)+'%';top.style.display=h.scrollTop>600?'block':'none';
+let cur=secs[0]&&secs[0].id;secs.forEach(s=>{if(s.getBoundingClientRect().top<120)cur=s.id});links.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+cur));},{passive:true});
+top.onclick=()=>scrollTo({top:0,behavior:'smooth'});
+// search
+$('#q').addEventListener('input',e=>{const t=e.target.value.toLowerCase();$$('.sec').forEach(s=>{s.style.display=s.textContent.toLowerCase().includes(t)?'':'none'});$$('details.q').forEach(d=>{d.style.display=d.textContent.toLowerCase().includes(t)?'':'none'})});
+// filter difficulty
+$$('#flt button').forEach(b=>b.onclick=()=>{$$('#flt button').forEach(x=>x.classList.remove('on'));b.classList.add('on');const f=b.dataset.f;$$('details.q').forEach(d=>{d.style.display=(f==='all'||d.dataset.d===f)?'':'none'})});
+// expand/collapse
+$('#exp').onclick=()=>$$('details').forEach(d=>d.open=true);
+$('#col').onclick=()=>$$('details').forEach(d=>d.open=false);
+// dark + print
+$('#dark').onclick=()=>{document.body.classList.toggle('dark');$('#dark').textContent=document.body.classList.contains('dark')?'Light mode':'Dark mode'};
+$('#prt').onclick=()=>print();
+// copy buttons
+document.addEventListener('click',e=>{const b=e.target.closest('button.copy');if(!b)return;const c=b.parentElement.querySelector('code');navigator.clipboard.writeText(c?c.innerText:'').then(()=>{b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1400)})});
+// checklist persistence
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
+function save(s){localStorage.setItem(KEY,JSON.stringify(s));paint()}
+function paint(){const s=load();const boxes=$$('.chk input[type=checkbox]');let n=0;boxes.forEach(b=>{const on=!!s[b.dataset.k];b.checked=on;b.closest('li').classList.toggle('done',on);if(on)n++});
+const pct=boxes.length?Math.round(n/boxes.length*100):0;$('#ppill').textContent=pct+'% done';
+const doneSecs={};$$('.sec').forEach(sec=>{const bs=sec.querySelectorAll('.chk input');if(!bs.length)return;const all=Array.from(bs).every(b=>s[b.dataset.k]);if(all)doneSecs[sec.id]=1});
+links.forEach(a=>a.classList.toggle('done',!!doneSecs[a.getAttribute('href').slice(1)]));}
+document.addEventListener('change',e=>{const b=e.target.closest('.chk input');if(!b)return;const s=load();s[b.dataset.k]=b.checked;save(s)});
+$$('.chk li').forEach(li=>li.addEventListener('click',e=>{if(e.target.tagName!=='INPUT'){const b=li.querySelector('input');b.checked=!b.checked;b.dispatchEvent(new Event('change',{bubbles:true}))}}));
+paint();
+// syntax highlight: PowerShell comments + cf/npm/cds/mbt commands in terminal blocks
+$$('pre code').forEach(el=>{if(el.closest('.mermaid'))return;const esc=el.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+el.innerHTML=esc.split('\n').map(ln=>{let h=ln.replace(/^(\s*#.*)$/,'<span class="tok-c">$1</span>');
+if(!h.includes('tok-c'))h=h.replace(/^(\s*)(cf|npm|cds|mbt|node|cd)\b/,'$1<span class="tok-k">$2</span>');return h}).join('\n')});
+// tooltips on key jargon (first mentions)
+[['MTAR','Multi-Target Archive: the versioned deployment package built by mbt'],['HDI','HANA Deployment Infrastructure: isolated container holding versioned schema objects'],['XSUAA','Authorization & Trust Management: SAP BTP OAuth identity service']].forEach(([t,tip])=>{const secs=[$('#s01'),$('#s26')];secs.forEach(s=>{if(!s)return;const walker=document.createTreeWalker(s,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);for(const n of nodes){const i=n.nodeValue.indexOf(t);if(i>-1&&n.parentElement.tagName!=='CODE'&&!n.parentElement.title){const r=document.createRange();r.setStart(n,i);r.setEnd(n,i+t.length);const sp=document.createElement('span');sp.title=tip;sp.style.borderBottom='1px dotted var(--gold)';sp.style.cursor='help';try{r.surroundContents(sp)}catch(e){}break}}})});
+function quotaCalc(){const mem=+($('#qMem').value||0),inst=+($('#qInst').value||0),routes=+($('#qRoutes').value||0);
+const lim={mem:+($('#qMemL').value||2048),inst:+($('#qInstL').value||10),routes:+($('#qRoutesL').value||10)};
+const set=(id,used,limit)=>{const el=$(id);const pct=limit?Math.round(used/limit*100):0;el.style.width=Math.min(100,pct)+'%';el.parentElement.previousElementSibling.querySelector('b').textContent=used+' / '+limit+' ('+pct+'%)';el.style.background=pct>90?'linear-gradient(90deg,#b42318,#f87171)':pct>70?'linear-gradient(90deg,#b45309,#fbbf24)':'linear-gradient(90deg,var(--gold),var(--gold2))'};
+set('#bMem',mem,lim.mem);set('#bInst',inst,lim.inst);set('#bRoutes',routes,lim.routes);
+$('#qVerdict').textContent=(mem>lim.mem||inst>lim.inst||routes>lim.routes)?'BLOCKED — deployment will fail on quota. Free or raise quota first.':'OK — quota headroom looks sufficient for this plan.';}
+// deploy stepper
+const DEP_TXT=['MTAR uploaded — operation ID issued. Save it for retry/abort.','MTA resolved against quota + entitlements. Quota errors surface here (§5).','bookshop-db HDI container provisioned or reused.','Credentials injected into app environments — no passwords in code.','Deployer creates/updates tables, views, procedures in the container.','bookshop-srv staged with the Node.js buildpack.','Public HTTPS route bound — consumes org route quota.','Health check passed → RUNNING. Test OData (§18).'];
+$$('#depSteps button').forEach(b=>b.onclick=()=>{$$('#depSteps button').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('#depOut').textContent=DEP_TXT[+b.dataset.s]});
+$('#depOut').textContent=DEP_TXT[0];
+odataBuild();quotaCalc();
+function odataBuild(){const r=($('#oRoute').value||'https://<APP>-<SPACE>.cfapps.<REGION>.hana.ondemand.com').trim();const svc=$('#oSvc').value;$('#oOut').textContent=r.replace(/\/$/,'')+'/odata/v4/'+svc+'/$metadata';}
+</script>
+</body>
+</html>

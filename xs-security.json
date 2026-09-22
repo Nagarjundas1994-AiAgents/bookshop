@@ -1,0 +1,31 @@
+{
+  "xsappname": "bookshop",
+  "tenant-mode": "dedicated",
+  "description": "Bookshop CAP application security",
+  "scopes": [
+    {
+      "name": "User",
+      "description": "Standard bookshop user"
+    },
+    {
+      "name": "Admin",
+      "description": "Bookshop administrator"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "User",
+      "description": "Standard bookshop user role",
+      "scope-references": ["$XSAPPNAME.User"]
+    },
+    {
+      "name": "Admin",
+      "description": "Bookshop admin role",
+      "scope-references": ["$XSAPPNAME.User", "$XSAPPNAME.Admin"]
+    }
+  ],
+  "oauth2-configuration": {
+    "redirect-uris": ["https://*.cfapps.*.hana.ondemand.com/**"]
+  }
+}

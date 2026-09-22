@@ -1,7 +1,10 @@
 _schema-version: 3.3.0
 ID: bookshop
 version: 1.0.0
-description: "CAP Bookshop Application"
+description: "CAP Bookshop Application with Fiori Elements frontend"
+copyright:
+  name: Bookshop
+  url: https://example.com
 
 parameters:
   enable-parallel-deployments: true
@@ -15,12 +18,14 @@ build-parameters:
 
 modules:
 
-  # CAP Application
+  # CAP backend (OData V4 services)
   - name: bookshop-srv
     type: nodejs
     path: gen/srv
     parameters:
       instances: 1
+      memory: 512M
+      disk-quota: 512M
       buildpack: nodejs_buildpack
     build-parameters:
       builder: npm
@@ -30,21 +35,90 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: bookshop-db
+      - name: bookshop-auth
 
-  # HANA Database Deployer
+  # HANA HDI deployer
   - name: bookshop-db-deployer
     type: hdb
     path: gen/db
     parameters:
       buildpack: nodejs_buildpack
+      memory: 512M
     requires:
       - name: bookshop-db
 
+  # Fiori Elements UIs -> HTML5 Application Repository (app-host)
+  - name: bookshop-app-content
+    type: html5
+    path: app
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install --prefix ..
+        - npx --prefix .. cds build --production
+      supported-platforms: []
+    requires:
+      - name: bookshop-html5-host
+
+  # Application router (entry point: /app/index.html, /browse, /admin, /orders)
+  - name: bookshop-approuter
+    type: nodejs
+    path: approuter
+    parameters:
+      instances: 1
+      memory: 256M
+      disk-quota: 256M
+      buildpack: nodejs_buildpack
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api
+          url: ~{srv-url}
+          forwardAuthToken: true
+          strictSSL: true
+      - name: bookshop-auth
+        group: xsuaa
+        properties:
+          xsappname: ~{xsappname}
+      - name: bookshop-html5-rt
+        group: destinations
+        properties:
+          name: html5-apps-repo-rt
+          url: ~{url}
+          forwardAuthToken: true
+          strictSSL: true
+
 resources:
 
-  # HANA HDI Container
+  # HANA HDI container
   - name: bookshop-db
     type: com.sap.xs.hdi-container
     parameters:
       service: hana
       service-plan: hdi-shared
+
+  # XSUAA (JWT auth, scopes User/Admin)
+  - name: bookshop-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: xs-security.json
+      config:
+        xsappname: bookshop-${space}
+        tenant-mode: dedicated
+
+  # HTML5 Application Repository — host (deployer target for bookshop-app-content)
+  - name: bookshop-html5-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  # HTML5 Application Repository — runtime (consumed by the approuter)
+  - name: bookshop-html5-rt
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
